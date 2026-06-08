@@ -9,9 +9,9 @@ proprietary index ingests CMC's own volatility / momentum / volume /
 dominance / social signals into a single 0–100 score with a public
 historical API (`/v3/fear-and-greed/historical`).
 
-Out-of-sample Sharpe = **0.85** vs in-sample
-**-0.99**; deflated-Sharpe probability =
-**0.08**; Monte-Carlo random-signal Sharpe
+Out-of-sample Sharpe = **-0.99** vs in-sample
+**-1.03**; deflated-Sharpe probability =
+**0.00**; Monte-Carlo random-signal Sharpe
 at the 95th percentile = **1.00**.
 FDR-significant factors at pooled level: none (alpha is regime-conditional — see §4).
 
@@ -76,15 +76,15 @@ identical tests — left to future work.
 
 We apply Benjamini–Hochberg FDR (q = 0.10) across all candidate factors and
 report López de Prado's Deflated Sharpe Ratio for the realised strategy.
-DSR probability = **0.08** over
+DSR probability = **0.00** over
 42 trials and 322 observations.
 
 ## 7. Strategy & Backtest
 
 In-sample: ann_return = -0.18, Sharpe =
--0.99, max drawdown = -0.43.
-Out-of-sample: ann_return = 0.12, Sharpe =
-0.85, max drawdown = -0.07.
+-1.03, max drawdown = -0.47.
+Out-of-sample: ann_return = -0.05, Sharpe =
+-0.99, max drawdown = -0.06.
 Monte-Carlo random-signal mean Sharpe =
 0.03 (95th pct
 1.00).

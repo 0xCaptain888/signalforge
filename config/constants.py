@@ -48,6 +48,8 @@ LISTINGS_HISTORICAL_AVAILABLE = False # listings/historical NOT available on Bas
 GLOBAL_METRICS_HISTORICAL_AVAILABLE = False
 GLOBAL_LATEST_HAS_ALTSEASON_FIELD = False  # build proxy in §4.2 per doc
 
-# Fallback price source for backtest (since CMC ohlcv/historical 403 on Basic).
-# Decision deferred to user — see README "Stage 2 status" section.
-PRICE_SOURCE_FALLBACK = None          # one of: "binance", "coingecko", "yahoo", None
+# Fallback price source for backtest (CMC ohlcv/historical 403 on Basic).
+# Resolved during Stage 2.9: Binance public klines are used (see
+# scripts/01_pull_data.py::pull_ohlcv_via_binance). Kept as documentation
+# so future plan upgrades can swap providers without grepping comments.
+PRICE_SOURCE_FALLBACK = "binance"     # one of: "binance" | "coingecko" | "yahoo" | None

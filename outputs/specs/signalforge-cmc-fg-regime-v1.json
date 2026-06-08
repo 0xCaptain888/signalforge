@@ -2,8 +2,8 @@
   "spec_version": "1.0",
   "spec_id": "signalforge-cmc-fg-regime-v1",
   "name": "CMC Proprietary F&G Regime-Aware Multi-Factor Strategy",
-  "created_at": "2026-06-08T01:06:51.356818+00:00",
-  "description": "Regime-aware multi-factor strategy whose core edge is the CoinMarketCap proprietary Fear & Greed index (distinct from Alternative.me). No factor cleared FDR at the pooled level — see the regime-conditional attribution in the research output. Out-of-sample Sharpe = 0.845.",
+  "created_at": "2026-06-08T01:27:46.520293+00:00",
+  "description": "Regime-aware multi-factor strategy whose core edge is the CoinMarketCap proprietary Fear & Greed index (distinct from Alternative.me). No factor cleared FDR at the pooled level — see the regime-conditional attribution in the research output. Out-of-sample Sharpe = -0.992.",
   "data_sources": [
     {
       "provider": "CoinMarketCap",
@@ -48,34 +48,22 @@
     },
     "factor_weights_by_regime": {
       "CHOP_FEAR": {
-        "fg_level": 0.13529360125341103,
-        "fg_momentum_7": 0.0899811670840069,
-        "fg_extreme_rev": 0.042333375666730164,
-        "fg_regime_dur": -0.26454398195794454
+        "fg_level": 0.2302556786880784,
+        "fg_zscore_90": -0.09971988795518208,
+        "fg_momentum_7": 0.0913492343541663,
+        "fg_extreme_rev": 0.1817011817983922,
+        "fg_regime_dur": -0.35216066001954544
       },
-      "BEAR_NEUTRAL": {
-        "fg_level": 0.1122113572544176,
-        "fg_momentum_7": 0.07567820397637931,
-        "fg_regime_dur": -0.16779923298717797
-      },
-      "BEAR_FEAR": {
-        "fg_level": 0.033689700858794504,
-        "fg_zscore_90": 0.200479499691831,
-        "fg_momentum_7": 0.22646986786345757,
-        "fg_extreme_rev": -0.1031216423261842,
-        "fg_regime_dur": 0.2277687062997823
+      "BULL_GREED": {
+        "fg_level": -0.059295958509684006,
+        "fg_zscore_90": 0.11625627718558067,
+        "fg_extreme_rev": 0.037417381131900594,
+        "fg_regime_dur": -0.160199692286801
       },
       "BULL_NEUTRAL": {
-        "fg_level": -0.11219098049432527,
-        "fg_zscore_90": -0.08176478850982388,
-        "fg_momentum_7": -0.11567060555360745,
-        "fg_regime_dur": 0.06106048185401154
-      },
-      "CHOP_NEUTRAL": {
-        "fg_level": -0.2954323030508987,
-        "fg_zscore_90": -0.09604975177494261,
-        "fg_momentum_7": -0.09150510107626182,
-        "fg_regime_dur": -0.18886830271848862
+        "fg_level": -0.10177542990899893,
+        "fg_momentum_7": -0.07482356276580768,
+        "fg_regime_dur": 0.14057263238981033
       },
       "CHOP_GREED": {
         "fg_level": -0.3131350231980014,
@@ -84,9 +72,11 @@
         "fg_extreme_rev": 0.28941240398924295,
         "fg_regime_dur": 0.25796654546853026
       },
-      "BULL_GREED": {
-        "fg_zscore_90": 0.12840211431760726,
-        "fg_regime_dur": -0.16578892602979275
+      "CHOP_NEUTRAL": {
+        "fg_level": -0.3215522807463505,
+        "fg_zscore_90": -0.10917374776386407,
+        "fg_momentum_7": -0.09080714286028,
+        "fg_regime_dur": -0.1985918580661409
       }
     }
   },
@@ -110,35 +100,35 @@
   },
   "reported_performance": {
     "in_sample": {
-      "ann_return": -0.17553878980935278,
-      "ann_vol": 0.1942916701471063,
-      "sharpe": -0.9932188758156625,
-      "sortino": -1.1230540585557018,
-      "calmar": -0.4055966666394228,
-      "max_drawdown": -0.4327915001466408,
-      "win_rate": 0.4654255319148936,
-      "avg_turnover": 0.10380407152841861,
-      "alpha_vs_bench": -0.014970622274212995,
-      "beta_vs_bench": -0.2319148900338741,
+      "ann_return": -0.18426160514849954,
+      "ann_vol": 0.19818977244891495,
+      "sharpe": -1.027322241650953,
+      "sortino": -1.133576985158695,
+      "calmar": -0.3921241163895072,
+      "max_drawdown": -0.46990633181425556,
+      "win_rate": 0.4640957446808511,
+      "avg_turnover": 0.096955938350465,
+      "alpha_vs_bench": -0.040072383404078996,
+      "beta_vs_bench": -0.213060904054123,
       "n_days": 752
     },
     "out_of_sample": {
-      "ann_return": 0.12337680394996076,
-      "ann_vol": 0.137680104255637,
-      "sharpe": 0.8451307924604615,
-      "sortino": 1.317751862058183,
-      "calmar": 1.8806768374224836,
-      "max_drawdown": -0.06560234139909538,
-      "win_rate": 0.453416149068323,
-      "avg_turnover": 0.12941940937838756,
-      "alpha_vs_bench": 0.08295179823654622,
-      "beta_vs_bench": -0.05615625241352745,
+      "ann_return": -0.05413045053950827,
+      "ann_vol": 0.05607716805932525,
+      "sharpe": -0.9923178381318417,
+      "sortino": -0.862291749603025,
+      "calmar": -0.9078650543467077,
+      "max_drawdown": -0.0596238948512674,
+      "win_rate": 0.15838509316770186,
+      "avg_turnover": 0.04958109215585022,
+      "alpha_vs_bench": -0.04456856240204921,
+      "beta_vs_bench": 0.018622112951351702,
       "n_days": 322
     },
     "deflated_sharpe": {
-      "sharpe_daily": 0.04423616744914306,
-      "sharpe_annual": 0.8451307924604615,
-      "deflated_sharpe_prob": 0.08039562241254533,
+      "sharpe_daily": -0.051940289529120935,
+      "sharpe_annual": -0.9923178381318417,
+      "deflated_sharpe_prob": 0.0008708912582542083,
       "n_trials": 42,
       "n_obs": 322
     },
