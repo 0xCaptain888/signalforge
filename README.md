@@ -55,9 +55,30 @@ See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 | 4 — M2 Research layer | ✅ done — IC/IR/FDR/regime/DSR + 14/14 tests green |
 | 5 — M3 Strategy layer | ✅ done — t→t+1 backtest + cost/MC + 23/23 tests green |
 | 6 — M4 LLM + Spec | ✅ done — DeepSeek synth + report + StrategySpec + 28/28 tests green |
-| 7 — M5 Reproducibility | ⏳ pending |
+| 7 — M5 Reproducibility | ✅ done — reproduce.py runs 02→05 end-to-end, seed=42 |
 | 8 — M6 Submission | ⏳ pending |
 | 9 — M7 Optional add-ons | ⏳ pending |
+
+## End-to-end pipeline status (2026-06-08)
+
+Full reproduce pass against the fresh data pull:
+
+| Step | Output | Notes |
+|---|---|---|
+| `01_pull_data.py`     | 4 parquet files in `data/processed/` | CMC F&G + map + Binance OHLCV fallback |
+| `02_build_factors.py` | `factors_timeseries.parquet`, `regime.parquet` | 1075 days, 8 of 9 regime buckets populated |
+| `03_run_research.py`  | `research_results.json` + 2 figures | **0 factors FDR-significant at pooled level** — alpha is regime-conditional (e.g. `fg_level` t-stat = −4.56 in `CHOP_NEUTRAL`, p ≈ 9e-6) |
+| `04_backtest.py`      | `backtest_results.json` + walkforward fig | OOS Sharpe = 0.85 vs Monte-Carlo 95th pct = 1.00 — strategy is borderline; iteration on regime weights / horizon needed |
+| `05_generate_spec.py` | `outputs/specs/signalforge-cmc-fg-regime-v1.json` | DeepSeek key currently 402 (insufficient balance); deterministic-template fallback engaged, spec still pydantic-valid |
+| `06_write_report.py`  | `outputs/reports/research_report.md` | LLM-fallback template; `verify_numbers` clean |
+| `reproduce.py`        | re-runs 02 → 05 | passes; 28 / 28 tests still green |
+
+**Honest read.** The pooled IC of CMC F&G washes out because the sign flips
+across regimes — a textbook finding that the doc anticipated. The
+regime-conditional t-stats are very strong, but the strategy that the
+default `regime_weights` builder consumes only picks up factors that cleared
+pooled FDR. Next iteration: lower the FDR gate to regime-stratified or
+add a parameter sweep over `HOLDING_PERIODS`.
 
 ## M0 findings (Stage 2.5, run 2026-06-08)
 

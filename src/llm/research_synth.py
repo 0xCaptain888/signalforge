@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 
-from src.llm.deepseek_client import reason
+from src.llm.deepseek_client import safe_reason
 
 SYSTEM = (
     "You are a quantitative researcher specializing in crypto market "
@@ -65,4 +65,24 @@ def synthesize(factor_name: str, definition: str, stats: dict) -> str:
         fdr=stats.get("fdr_significant"),
         regime_ic=json.dumps(stats.get("regime_ic", [])[:5], default=float),
     )
-    return reason(SYSTEM, user, tag=f"synth_{factor_name}")
+    text = safe_reason(SYSTEM, user, tag=f"synth_{factor_name}")
+    if text:
+        return text
+    # Deterministic fallback when DeepSeek is unavailable (402 / network).
+    # The numbers are still 100% Python-computed — this template only
+    # narrates them.
+    top_regime = max(
+        stats.get("regime_ic", []) or [{}],
+        key=lambda r: abs(r.get("ic") or 0.0),
+        default={},
+    )
+    return (
+        f"Factor `{factor_name}` ({definition}). "
+        f"Pooled Rank-IC = {stats.get('ic_overall'):.4f} (IR "
+        f"{stats.get('ir'):.3f}, t-stat {stats.get('t_stat'):.2f}); "
+        f"strongest regime-conditional signal in "
+        f"`{top_regime.get('regime', 'n/a')}` with IC "
+        f"{top_regime.get('ic', 0):.3f} (n={top_regime.get('n', 0)}). "
+        "LLM rationale unavailable (offline / quota); numbers stand on "
+        "their own."
+    )

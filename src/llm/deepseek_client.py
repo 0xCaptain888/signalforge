@@ -9,6 +9,11 @@ relies on.
 Two model entry points:
 - `chat`     → `deepseek-chat`     (general writing, default)
 - `reason`   → `deepseek-reasoner` (multi-step explanations, lower temp)
+
+Additionally `safe_chat` / `safe_reason` swallow API failures (e.g. 402
+insufficient balance, network errors) and return an empty string, so the
+spec / report scripts can fall back to deterministic templates without
+hard-failing the reproduce pipeline.
 """
 from __future__ import annotations
 
@@ -19,6 +24,10 @@ from pathlib import Path
 from openai import OpenAI
 
 from config.settings import settings
+
+
+class LLMUnavailable(RuntimeError):
+    """Raised when DeepSeek is unreachable / out of credit / mis-configured."""
 
 
 # Lazy client — constructed on first chat/reason call so importing this
@@ -109,3 +118,26 @@ def reason(
         temperature=temperature,
         tag=tag,
     )
+
+
+def safe_chat(*args, **kwargs) -> str:
+    """`chat` that returns "" when the API is unreachable / out of credit.
+
+    Caller decides what deterministic fallback to substitute.
+    """
+    try:
+        return chat(*args, **kwargs)
+    except Exception as exc:  # noqa: BLE001
+        _log({"error": repr(exc), "args": str(args), "kwargs": str(kwargs)},
+             tag=f"{kwargs.get('tag', 'chat')}_FAIL")
+        return ""
+
+
+def safe_reason(*args, **kwargs) -> str:
+    """`reason` that returns "" when the API is unreachable / out of credit."""
+    try:
+        return reason(*args, **kwargs)
+    except Exception as exc:  # noqa: BLE001
+        _log({"error": repr(exc), "args": str(args), "kwargs": str(kwargs)},
+             tag=f"{kwargs.get('tag', 'reason')}_FAIL")
+        return ""

@@ -15,7 +15,7 @@ import json
 from pathlib import Path
 
 from config.settings import settings
-from src.llm.deepseek_client import chat
+from src.llm.deepseek_client import safe_chat
 from src.llm.research_synth import synthesize
 from src.spec.builder import build_spec
 
@@ -72,7 +72,7 @@ def main() -> None:
     oos_sharpe = (
         backtest.get("out_of_sample", {}).get("sharpe")
     )
-    strategy_desc = chat(
+    strategy_desc = safe_chat(
         system=(
             "You write concise quantitative strategy descriptions. Use only "
             "the provided facts. Do not invent metrics."
@@ -85,6 +85,22 @@ def main() -> None:
         ),
         tag="strategy_desc",
     )
+    if not strategy_desc:
+        sig_blurb = (
+            f"FDR-significant factors at the chosen horizon: {sig_factors}."
+            if sig_factors
+            else "No factor cleared FDR at the pooled level — see the "
+                 "regime-conditional attribution in the research output."
+        )
+        oos_blurb = (
+            f"Out-of-sample Sharpe = {oos_sharpe:.3f}."
+            if oos_sharpe is not None else ""
+        )
+        strategy_desc = (
+            "Regime-aware multi-factor strategy whose core edge is the "
+            "CoinMarketCap proprietary Fear & Greed index (distinct from "
+            f"Alternative.me). {sig_blurb} {oos_blurb}"
+        ).strip()
 
     descriptions = {**DEFINITIONS, "_strategy": strategy_desc}
     spec = build_spec(research, backtest, explanations, descriptions)

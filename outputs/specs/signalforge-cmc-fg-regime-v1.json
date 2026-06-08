@@ -1,0 +1,157 @@
+{
+  "spec_version": "1.0",
+  "spec_id": "signalforge-cmc-fg-regime-v1",
+  "name": "CMC Proprietary F&G Regime-Aware Multi-Factor Strategy",
+  "created_at": "2026-06-08T01:02:54.231855+00:00",
+  "description": "Regime-aware multi-factor strategy whose core edge is the CoinMarketCap proprietary Fear & Greed index (distinct from Alternative.me). No factor cleared FDR at the pooled level — see the regime-conditional attribution in the research output. Out-of-sample Sharpe = 0.845.",
+  "data_sources": [
+    {
+      "provider": "CoinMarketCap",
+      "endpoint": "/v3/fear-and-greed/historical",
+      "field": "value",
+      "note": "CMC proprietary Fear & Greed — distinct algorithm from Alternative.me; under-researched alpha source.",
+      "is_proprietary": true
+    },
+    {
+      "provider": "CoinMarketCap",
+      "endpoint": "/v1/global-metrics/quotes/historical",
+      "field": "btc_dominance",
+      "note": null,
+      "is_proprietary": false
+    },
+    {
+      "provider": "CoinMarketCap",
+      "endpoint": "/v1/cryptocurrency/listings/historical",
+      "field": null,
+      "note": "Point-in-time universe; survivorship-bias-free when available (Standard+ plan).",
+      "is_proprietary": false
+    },
+    {
+      "provider": "CoinMarketCap",
+      "endpoint": "/v2/cryptocurrency/ohlcv/historical",
+      "field": null,
+      "note": null,
+      "is_proprietary": false
+    }
+  ],
+  "universe": {
+    "selection": "top_N_by_market_cap",
+    "N": 100,
+    "source": "listings/historical (point-in-time)",
+    "survivorship_handling": "delisted coins included within their active window via first/last_historical_data from /cryptocurrency/map"
+  },
+  "factors": [],
+  "regime": {
+    "definition": {
+      "direction": "BTC vs MA200 + dominance 20d slope",
+      "sentiment": "CMC F&G with thresholds FEAR<33, GREED>66"
+    },
+    "factor_weights_by_regime": {
+      "CHOP_FEAR": {
+        "fg_level": 0.13529360125341103,
+        "fg_momentum_7": 0.0899811670840069,
+        "fg_extreme_rev": 0.042333375666730164,
+        "fg_regime_dur": -0.26454398195794454
+      },
+      "BEAR_NEUTRAL": {
+        "fg_level": 0.1122113572544176,
+        "fg_momentum_7": 0.07567820397637931,
+        "fg_regime_dur": -0.16779923298717797
+      },
+      "BEAR_FEAR": {
+        "fg_level": 0.033689700858794504,
+        "fg_zscore_90": 0.200479499691831,
+        "fg_momentum_7": 0.22646986786345757,
+        "fg_extreme_rev": -0.1031216423261842,
+        "fg_regime_dur": 0.2277687062997823
+      },
+      "BULL_NEUTRAL": {
+        "fg_level": -0.11219098049432527,
+        "fg_zscore_90": -0.08176478850982388,
+        "fg_momentum_7": -0.11567060555360745,
+        "fg_regime_dur": 0.06106048185401154
+      },
+      "CHOP_NEUTRAL": {
+        "fg_level": -0.2954323030508987,
+        "fg_zscore_90": -0.09604975177494261,
+        "fg_momentum_7": -0.09150510107626182,
+        "fg_regime_dur": -0.18886830271848862
+      },
+      "CHOP_GREED": {
+        "fg_level": -0.3131350231980014,
+        "fg_zscore_90": 0.04047626821649743,
+        "fg_momentum_7": -0.2321715348831936,
+        "fg_extreme_rev": 0.28941240398924295,
+        "fg_regime_dur": 0.25796654546853026
+      },
+      "BULL_GREED": {
+        "fg_zscore_90": 0.12840211431760726,
+        "fg_regime_dur": -0.16578892602979275
+      }
+    }
+  },
+  "signal_to_position": {
+    "method": "IR-weighted, regime-conditional",
+    "max_asset_weight": 0.3,
+    "max_gross_leverage": 1.0,
+    "rebalance_frequency": "daily"
+  },
+  "execution_assumptions": {
+    "signal_to_trade_lag_days": 1,
+    "fee_bps": 10,
+    "slippage_bps_by_size": {
+      "large_cap": 5,
+      "mid_cap": 10,
+      "small_cap": 20
+    }
+  },
+  "backtest_window": {
+    "in_sample_to_oos_cut": "2025-07-21 00:00:00"
+  },
+  "reported_performance": {
+    "in_sample": {
+      "ann_return": -0.17553878980935278,
+      "ann_vol": 0.1942916701471063,
+      "sharpe": -0.9932188758156625,
+      "sortino": -1.1230540585557018,
+      "calmar": -0.4055966666394228,
+      "max_drawdown": -0.4327915001466408,
+      "win_rate": 0.4654255319148936,
+      "avg_turnover": 0.10380407152841861,
+      "alpha_vs_bench": -0.014970622274212995,
+      "beta_vs_bench": -0.2319148900338741,
+      "n_days": 752
+    },
+    "out_of_sample": {
+      "ann_return": 0.12337680394996076,
+      "ann_vol": 0.137680104255637,
+      "sharpe": 0.8451307924604615,
+      "sortino": 1.317751862058183,
+      "calmar": 1.8806768374224836,
+      "max_drawdown": -0.06560234139909538,
+      "win_rate": 0.453416149068323,
+      "avg_turnover": 0.12941940937838756,
+      "alpha_vs_bench": 0.08295179823654622,
+      "beta_vs_bench": -0.05615625241352745,
+      "n_days": 322
+    },
+    "deflated_sharpe": {
+      "sharpe_daily": 0.04423616744914306,
+      "sharpe_annual": 0.8451307924604615,
+      "deflated_sharpe_prob": 0.08039562241254533,
+      "n_trials": 42,
+      "n_obs": 322
+    },
+    "monte_carlo_baseline": {
+      "random_sharpe_mean": 0.03024182248335857,
+      "random_sharpe_95pct": 0.9997712325423074,
+      "random_sharpe_std": 0.5701566709230502,
+      "n_sims": 1000
+    }
+  },
+  "reproducibility": {
+    "seed": 42,
+    "engine_version": "signalforge-0.1.0",
+    "reproduce_command": "python scripts/reproduce.py"
+  }
+}
