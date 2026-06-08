@@ -33,6 +33,13 @@ realistic cost model, Monte-Carlo random-signal baseline, and a
 calibrate-weights-from-research helper. 23 / 23 unit tests are green,
 including a "cheat" signal sanity check that proves the backtest does not
 leak same-day returns.
+Stage 6 (M4 LLM + Spec layer) shipped — DeepSeek client (chat + reasoner,
+fully logged), per-factor rationale synthesis, markdown report writer with
+a post-hoc hallucination detector, pydantic `StrategySpec` schema with a
+deterministic builder, plus `scripts/05_generate_spec.py`,
+`scripts/06_write_report.py`, and `scripts/reproduce.py`. 28 / 28 tests
+green (no live LLM call required — schema, builder, and detector are
+verified deterministically).
 See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 
 | Stage | Status |
@@ -43,7 +50,7 @@ See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 | 3 — M1 Factor layer | ✅ done — code + 5/5 unit tests green |
 | 4 — M2 Research layer | ✅ done — IC/IR/FDR/regime/DSR + 14/14 tests green |
 | 5 — M3 Strategy layer | ✅ done — t→t+1 backtest + cost/MC + 23/23 tests green |
-| 6 — M4 LLM + Spec | ⏳ pending |
+| 6 — M4 LLM + Spec | ✅ done — DeepSeek synth + report + StrategySpec + 28/28 tests green |
 | 7 — M5 Reproducibility | ⏳ pending |
 | 8 — M6 Submission | ⏳ pending |
 | 9 — M7 Optional add-ons | ⏳ pending |
@@ -94,7 +101,16 @@ python scripts/03_run_research.py
 # run backtest (Stage 5 — IS/OOS + DSR + cost grid + monte-carlo + equity)
 python scripts/04_backtest.py
 
-# run unit tests (no-lookahead + survivorship + IC + multiple-testing + strategy)
+# generate machine-readable StrategySpec (Stage 6 — LLM rationales + spec.json)
+python scripts/05_generate_spec.py
+
+# write the markdown research report (Stage 6 — with hallucination check)
+python scripts/06_write_report.py
+
+# one-click reproduction of 02 -> 05 (judges run this; seed=42)
+python scripts/reproduce.py
+
+# run unit tests (all 28)
 pytest tests/ -v
 ```
 
@@ -171,6 +187,30 @@ New unit tests in `tests/test_strategy.py` (9 added, all green):
 - costs reduce returns; long/short XS basket is dollar-neutral and
   respects the per-asset cap
 - unmapped regime ⇒ zero position; MC random-Sharpe stats are sensible
+
+## Stage 6 — M4 LLM + Spec layer (shipped 2026-06-08)
+
+The LLM never computes numbers; it only narrates them. Every prompt and
+response is logged for audit.
+
+| File | What it provides |
+|---|---|
+| `src/llm/deepseek_client.py`    | lazy OpenAI-compatible client for DeepSeek; `chat()` (deepseek-chat) and `reason()` (deepseek-reasoner); writes every call to `outputs/llm_logs/` |
+| `src/llm/research_synth.py`     | per-factor economic / behavioural rationale, grounded only in supplied stats |
+| `src/llm/report_writer.py`      | full markdown report writer + `verify_numbers` hallucination detector (regex-extracts decimals from the draft and flags any not present in the source JSON) |
+| `src/spec/schema.py`            | pydantic `StrategySpec` / `FactorSpec` / `DataSource` contract |
+| `src/spec/builder.py`           | deterministic spec assembly from research + backtest + LLM rationales; only FDR-significant factors are included |
+| `scripts/05_generate_spec.py`   | DeepSeek synth pass → writes `outputs/specs/<spec_id>.json` |
+| `scripts/06_write_report.py`    | DeepSeek report pass → writes `outputs/reports/research_report.md` + prints any hallucination warnings |
+| `scripts/reproduce.py`          | judge-facing one-click rerun of 02 → 03 → 04 → 05 with seed=42 |
+
+New unit tests in `tests/test_spec.py` (5 added, all green — no LLM call):
+- `build_spec` only includes FDR-significant factors; numbers are copied
+  verbatim from the research JSON
+- `StrategySpec` round-trips through `model_dump_json` / `model_validate`
+- `verify_numbers` passes when all decimals trace back; flags fabricated
+  ones (e.g. `9.99` not in source); accepts sign-flips (e.g. drawdown
+  reported as `22.5%` when source has `-22.5`)
 
 ## Architecture (planned)
 
