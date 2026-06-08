@@ -17,7 +17,11 @@ historical API and cannot be honestly backtested. **Rigor over hype.**
 
 ## Status
 
-Stage 2 in progress — M0 smoke executed; **partial blocker found**, decision pending.
+Stage 2 shipped — M0 smoke executed, blocker resolved via Binance public-API
+fallback for OHLCV. `scripts/01_pull_data.py` now produces the full set of
+parquet inputs needed by Stages 3–6 (1075 days of CMC F&G, 18 coins of daily
+OHLCV from 2023-06-29 onwards, 5000-row crypto map, 1-row global metrics
+snapshot).
 Stage 3 (M1 factor layer) shipped — all 5 unit tests for no-look-ahead and
 survivorship-bias are green. The factor code is data-source agnostic, so it
 runs end-to-end as soon as price / dominance data arrives via any of the
@@ -46,7 +50,7 @@ See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 |---|---|
 | 0 — Repo init | ✅ done |
 | 1 — Scaffold | ✅ done |
-| 2 — M0 Data layer smoke | ⚠️ partial — see "M0 findings" below |
+| 2 — M0 Data layer smoke | ✅ done — 7-endpoint smoke + M0 back-fill + Binance OHLCV fallback |
 | 3 — M1 Factor layer | ✅ done — code + 5/5 unit tests green |
 | 4 — M2 Research layer | ✅ done — IC/IR/FDR/regime/DSR + 14/14 tests green |
 | 5 — M3 Strategy layer | ✅ done — t→t+1 backtest + cost/MC + 23/23 tests green |
@@ -70,15 +74,23 @@ Smoke test executed against the supplied CMC key — on the **free Basic plan**
 | F | `/v1/global-metrics/quotes/historical` | ❌ **403** | Basic plan does NOT include this |
 | G | `/v1/global-metrics/quotes/latest` | ✅ 200 | rich snapshot, no `altcoin_season` field |
 
-**Implication.** The CMC proprietary F&G alpha source (E) is fully usable. But
-the historical OHLCV (D) and historical global metrics (F) endpoints that the
-backtest depends on are **not** on this plan tier — the strategy cannot be
-backtested on CMC-native price data alone.
+**Implication.** The CMC proprietary F&G alpha source (E) is fully usable. To
+unblock downstream stages without a paid plan upgrade, `scripts/01_pull_data.py`
+falls back to **Binance public klines** (free, no API key) for OHLCV. CMC F&G
+remains the unique alpha source — Binance prices are infrastructure for
+forward-return / regime calculations and are honestly disclosed in the report.
 
-Stage 2.6 / 2.7 (back-fill `config/constants.py` + `src/cmc/schemas.py`) are
-done with verified field shapes from the four working endpoints. Stage 2.9 /
-2.10 (`scripts/01_pull_data.py` + full pull) is **blocked** pending a path
-decision (CMC plan upgrade vs. hybrid price-source vs. narrative-only).
+Stage 2.6 / 2.7 (back-fill `config/constants.py` + `src/cmc/schemas.py`) and
+Stage 2.9 / 2.10 (`scripts/01_pull_data.py` + full pull) are now complete:
+
+| Artefact | Rows / Notes |
+|---|---|
+| `data/processed/fear_greed.parquet` | 1075 rows, 2023-06-29 → 2026-06-07 |
+| `data/processed/crypto_map.parquet` | 5000 coins |
+| `data/processed/ohlcv.parquet` | 18962 rows, 18 coins (Binance fallback) |
+| `data/processed/global_metrics_latest.parquet` | 1 snapshot row (historical 403) |
+
+Total CMC credits spent on the full pull: **2** (cache hits cost zero on rerun).
 
 ## Quickstart
 
@@ -91,6 +103,9 @@ pip install -e .
 
 # go/no-go smoke test (after Stage 2)
 python scripts/00_smoke_test.py
+
+# full historical data pull (CMC F&G + map + Binance OHLCV fallback)
+python scripts/01_pull_data.py
 
 # build factor panels (Stage 3 — needs parquet outputs from 01_pull_data.py)
 python scripts/02_build_factors.py
