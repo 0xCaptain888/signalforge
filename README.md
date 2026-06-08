@@ -216,7 +216,7 @@ gate to regime-stratified or sweep `HOLDING_PERIODS`.
 | 5 — M3 Strategy layer          | ✅ done — t→t+1 backtest + cost grid + MC + 23/23 tests |
 | 6 — M4 LLM + Spec              | ✅ done — DeepSeek synth + report + StrategySpec + 28/28 tests |
 | 7 — M5 Reproducibility         | ✅ done — manifest hash gate + no-key sanity script |
-| 8 — M6 Submission              | 🚧 in progress (8.1 README ✅, 8.2 PDF ✅, 8.3 video / 8.5 checklist pending) |
+| 8 — M6 Submission              | 🚧 in progress (8.1 README ✅, 8.2 Skills wrapper ⏳, 8.3 video / 8.5 checklist pending) |
 | 9 — M7 Optional add-ons        | ⏳ pending |
 
 See [development schedule](./docs/SignalForge-开发周期表.md) for the full
