@@ -1,0 +1,118 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "slug": "bitcoin",
+      "rank": 1,
+      "is_active": 1,
+      "first_historical_data": "2010-07-13T00:05:00.000Z",
+      "last_historical_data": "2026-06-08T00:10:00.000Z",
+      "platform": null
+    },
+    {
+      "id": 2,
+      "name": "Litecoin",
+      "symbol": "LTC",
+      "slug": "litecoin",
+      "rank": 25,
+      "is_active": 1,
+      "first_historical_data": "2013-04-28T18:45:00.000Z",
+      "last_historical_data": "2026-06-08T00:10:00.000Z",
+      "platform": null
+    },
+    {
+      "id": 3,
+      "name": "Namecoin",
+      "symbol": "NMC",
+      "slug": "namecoin",
+      "rank": 842,
+      "is_active": 1,
+      "first_historical_data": "2013-04-28T18:45:00.000Z",
+      "last_historical_data": "2026-06-08T00:10:00.000Z",
+      "platform": null
+    },
+    {
+      "id": 4,
+      "name": "Terracoin",
+      "symbol": "TRC",
+      "slug": "terracoin",
+      "rank": 5423,
+      "is_active": 1,
+      "first_historical_data": "2013-04-28T18:45:00.000Z",
+      "last_historical_data": "2026-06-08T00:10:00.000Z",
+      "platform": null
+    },
+    {
+      "id": 5,
+      "name": "Peercoin",
+      "symbol": "PPC",
+      "slug": "peercoin",
+      "rank": 1088,
+      "is_active": 1,
+      "first_historical_data": "2013-04-28T18:45:00.000Z",
+      "last_historical_data": "2026-06-08T00:10:00.000Z",
+      "platform": null
+    },
+    {
+      "id": 6,
+      "name": "Novacoin",
+      "symbol": "NVC",
+      "slug": "novacoin",
+      "rank": 5311,
+      "is_active": 1,
+      "first_historical_data": "2013-04-28T18:45:00.000Z",
+      "last_historical_data": "2026-06-08T00:10:00.000Z",
+      "platform": null
+    },
+    {
+      "id": 7,
+      "name": "Devcoin",
+      "symbol": "DVC",
+      "slug": "devcoin",
+      "rank": null,
+      "is_active": 0,
+      "platform": null
+    },
+    {
+      "id": 8,
+      "name": "Feathercoin",
+      "symbol": "FTC",
+      "slug": "feathercoin",
+      "rank": 2675,
+      "is_active": 1,
+      "first_historical_data": "2013-05-03T03:25:00.000Z",
+      "last_historical_data": "2026-06-08T00:10:00.000Z",
+      "platform": null
+    },
+    {
+      "id": 9,
+      "name": "Mincoin",
+      "symbol": "MNC",
+      "slug": "mincoin",
+      "rank": null,
+      "is_active": 0,
+      "platform": null
+    },
+    {
+      "id": 10,
+      "name": "Freicoin",
+      "symbol": "FRC",
+      "slug": "freicoin",
+      "rank": 5430,
+      "is_active": 1,
+      "first_historical_data": "2013-05-03T03:25:00.000Z",
+      "last_historical_data": "2026-06-08T00:10:00.000Z",
+      "platform": null
+    }
+  ],
+  "status": {
+    "timestamp": "2026-06-08T00:18:09.540Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 17,
+    "credit_count": 0,
+    "notice": null
+  }
+}

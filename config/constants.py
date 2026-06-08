@@ -27,8 +27,27 @@ FG_GREED = 66                 # CMC proprietary F&G greed line
 # Holding periods (for IC-decay test)
 HOLDING_PERIODS = [1, 5, 10, 20, 40]
 
-# TODO(M0): Back-fill after smoke test
-CMC_PLAN = "UNKNOWN"                  # e.g. "Startup" / "Standard" / "Basic"
-FG_HISTORY_MAX_DAYS = None            # Actual max records F&G history endpoint returns
-OHLCV_EARLIEST = None                 # Earliest OHLCV date your plan can fetch
-LISTINGS_HISTORICAL_AVAILABLE = None  # bool: is listings/historical available on this plan
+# --- M0 back-fill (filled 2026-06-08 from scripts/00_smoke_test.py) ---
+# Key tested: 4466eccb… (CMC_API_KEY in .env). 7-endpoint smoke produced:
+#   [A] key/info             OK   (Basic plan, 15000 credits/mo, 50 req/min)
+#   [B] crypto/map           OK   (id/name/symbol/slug/rank/is_active/
+#                                  first_historical_data/last_historical_data/platform)
+#   [C] listings/historical  403  (NOT available on Basic plan)
+#   [D] ohlcv/historical     403  (NOT available on Basic plan)
+#   [E] /v3/fear-and-greed/  OK   ★ 500 rows newest-first, value=int 0-100,
+#                                  timestamp=UNIX-seconds-as-string
+#   [F] global-metrics/hist  403  (NOT available on Basic plan)
+#   [G] global-metrics/latest OK  (has btc/eth dominance + defi/stablecoin/
+#                                  derivatives mkt cap; NO altcoin_season field)
+CMC_PLAN = "Basic"
+CMC_PLAN_CREDITS_PER_MONTH = 15_000
+CMC_PLAN_RATE_LIMIT_PER_MIN = 50
+FG_HISTORY_MAX_DAYS = 500             # per page; paginate via start= for more
+OHLCV_EARLIEST = None                 # ohlcv/historical NOT available on Basic
+LISTINGS_HISTORICAL_AVAILABLE = False # listings/historical NOT available on Basic
+GLOBAL_METRICS_HISTORICAL_AVAILABLE = False
+GLOBAL_LATEST_HAS_ALTSEASON_FIELD = False  # build proxy in §4.2 per doc
+
+# Fallback price source for backtest (since CMC ohlcv/historical 403 on Basic).
+# Decision deferred to user — see README "Stage 2 status" section.
+PRICE_SOURCE_FALLBACK = None          # one of: "binance", "coingecko", "yahoo", None

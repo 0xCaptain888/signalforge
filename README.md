@@ -17,14 +17,14 @@ historical API and cannot be honestly backtested. **Rigor over hype.**
 
 ## Status
 
-Stage 1 complete (project installs cleanly via `pip install -e .`).
+Stage 2 in progress — M0 smoke executed; **partial blocker found**, decision pending.
 See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 
 | Stage | Status |
 |---|---|
 | 0 — Repo init | ✅ done |
 | 1 — Scaffold | ✅ done |
-| 2 — M0 Data layer smoke | 🚧 next |
+| 2 — M0 Data layer smoke | ⚠️ partial — see "M0 findings" below |
 | 3 — M1 Factor layer | ⏳ pending |
 | 4 — M2 Research layer | ⏳ pending |
 | 5 — M3 Strategy layer | ⏳ pending |
@@ -32,6 +32,31 @@ See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 | 7 — M5 Reproducibility | ⏳ pending |
 | 8 — M6 Submission | ⏳ pending |
 | 9 — M7 Optional add-ons | ⏳ pending |
+
+## M0 findings (Stage 2.5, run 2026-06-08)
+
+Smoke test executed against the supplied CMC key — on the **free Basic plan**
+(15 000 credits / month, 50 req / min). Endpoint availability:
+
+| # | Endpoint | Status | Notes |
+|---|---|---|---|
+| A | `/v1/key/info` | ✅ 200 | plan + credits OK |
+| B | `/v1/cryptocurrency/map` | ✅ 200 | all expected fields present |
+| C | `/v1/cryptocurrency/listings/historical` | ❌ **403** | Basic plan does NOT include this |
+| D | `/v2/cryptocurrency/ohlcv/historical` | ❌ **403** | Basic plan does NOT include this |
+| E | `/v3/fear-and-greed/historical` ★ | ✅ 200 | 500 rows/page, paginates further |
+| F | `/v1/global-metrics/quotes/historical` | ❌ **403** | Basic plan does NOT include this |
+| G | `/v1/global-metrics/quotes/latest` | ✅ 200 | rich snapshot, no `altcoin_season` field |
+
+**Implication.** The CMC proprietary F&G alpha source (E) is fully usable. But
+the historical OHLCV (D) and historical global metrics (F) endpoints that the
+backtest depends on are **not** on this plan tier — the strategy cannot be
+backtested on CMC-native price data alone.
+
+Stage 2.6 / 2.7 (back-fill `config/constants.py` + `src/cmc/schemas.py`) are
+done with verified field shapes from the four working endpoints. Stage 2.9 /
+2.10 (`scripts/01_pull_data.py` + full pull) is **blocked** pending a path
+decision (CMC plan upgrade vs. hybrid price-source vs. narrative-only).
 
 ## Quickstart
 

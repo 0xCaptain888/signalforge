@@ -1,0 +1,31 @@
+{
+  "data": {
+    "plan": {
+      "credit_limit_monthly": 15000,
+      "credit_limit_monthly_reset": "In 22 days, 23 hours, 41 minutes",
+      "credit_limit_monthly_reset_timestamp": "2026-07-01T00:00:00.000Z",
+      "rate_limit_minute": 50
+    },
+    "usage": {
+      "current_minute": {
+        "requests_made": 1,
+        "requests_left": 49
+      },
+      "current_day": {
+        "credits_used": 0
+      },
+      "current_month": {
+        "credits_used": 0,
+        "credits_left": 15000
+      }
+    }
+  },
+  "status": {
+    "timestamp": "2026-06-08T00:18:06.951Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 3,
+    "credit_count": 0,
+    "notice": null
+  }
+}
