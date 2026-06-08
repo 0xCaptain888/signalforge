@@ -27,6 +27,12 @@ regime-layered attribution / BH-FDR multiple-testing correction / Deflated
 Sharpe. 14 / 14 unit tests are green (5 from Stage 3 + 9 new). The pipeline
 script `scripts/03_run_research.py` is ready to consume the parquet panels
 the moment they exist.
+Stage 5 (M3 strategy layer) shipped — signals → regime-conditional and
+cross-section positions → vectorised backtest with strict t → t+1 execution,
+realistic cost model, Monte-Carlo random-signal baseline, and a
+calibrate-weights-from-research helper. 23 / 23 unit tests are green,
+including a "cheat" signal sanity check that proves the backtest does not
+leak same-day returns.
 See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 
 | Stage | Status |
@@ -36,7 +42,7 @@ See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 | 2 — M0 Data layer smoke | ⚠️ partial — see "M0 findings" below |
 | 3 — M1 Factor layer | ✅ done — code + 5/5 unit tests green |
 | 4 — M2 Research layer | ✅ done — IC/IR/FDR/regime/DSR + 14/14 tests green |
-| 5 — M3 Strategy layer | ⏳ pending |
+| 5 — M3 Strategy layer | ✅ done — t→t+1 backtest + cost/MC + 23/23 tests green |
 | 6 — M4 LLM + Spec | ⏳ pending |
 | 7 — M5 Reproducibility | ⏳ pending |
 | 8 — M6 Submission | ⏳ pending |
@@ -85,7 +91,10 @@ python scripts/02_build_factors.py
 # run factor research (Stage 4 — IC / IR / FDR / regime + figures)
 python scripts/03_run_research.py
 
-# run unit tests (no-lookahead + survivorship-bias + IC + multiple-testing)
+# run backtest (Stage 5 — IS/OOS + DSR + cost grid + monte-carlo + equity)
+python scripts/04_backtest.py
+
+# run unit tests (no-lookahead + survivorship + IC + multiple-testing + strategy)
 pytest tests/ -v
 ```
 
@@ -140,6 +149,28 @@ Additional unit tests (all green):
   recovers a constructed monotone signal, rolling IC respects window.
 - `tests/test_multiple_testing.py` — BH-FDR flags only truly small p's,
   handles NaN inputs, DSR shrinks monotonically with more trials.
+
+## Stage 5 — M3 Strategy layer (shipped 2026-06-08)
+
+Signal → position → backtest, with the execution lag and cost accounting
+done correctly so the OOS numbers are honestly comparable to HODL.
+
+| File | What it provides |
+|---|---|
+| `src/strategy/signals.py`   | `factor_to_signal` (tanh squash, NaN-safe), `combine_signals` (L1-normalised weighted sum, bounded) |
+| `src/strategy/portfolio.py` | `regime_conditional_positions` (single-asset timing), `cross_section_positions` (top-q L/S with cap), `default_regime_weights` |
+| `src/strategy/backtest.py`  | `backtest_single`, `backtest_panel` (both apply strict t → t+1 shift), `_perf` (Sharpe/Sortino/Calmar/DD/alpha/beta/turnover/equity), `monte_carlo_random` baseline |
+| `scripts/04_backtest.py`    | end-to-end: IS/OOS split, calibrate regime weights from `research_results.json`, Deflated Sharpe, cost-grid sensitivity, MC random-signal Sharpe, writes `backtest_results.json` + `walkforward_oos.png` |
+
+New unit tests in `tests/test_strategy.py` (9 added, all green):
+- bounded / NaN-safe / long-only signal transforms
+- L1-normalised `combine_signals` cancels equal-opposite inputs
+- t → t+1 execution lag verified by symmetry of long vs short positions
+- **anti look-ahead**: a "cheat" signal equal to today's return earns
+  near-zero Sharpe after the shift (would be > 30 without it)
+- costs reduce returns; long/short XS basket is dollar-neutral and
+  respects the per-asset cap
+- unmapped regime ⇒ zero position; MC random-Sharpe stats are sensible
 
 ## Architecture (planned)
 
