@@ -37,10 +37,10 @@ src/factors/   timeseries + cross-section + regime factors (point-in-time)
 src/research/  IC / Rank-IC / IR / t-stat / IC-decay / FDR / DSR / bootstrap
 src/strategy/  factor→signal→position→backtest with t→t+1 execution
 src/llm/       DeepSeek client + per-factor synth + report writer + hallucination detector
-src/spec/      pydantic StrategySpec schema + deterministic builder
+src/spec/       pydantic StrategySpec schema + deterministic builder + skill_wrapper (§8.2)
 scripts/       00_smoke → 01_pull → 02_factors → 03_research → 04_backtest
                → 05_spec → 06_report → reproduce → check_no_key_reproduction
-tests/         28 unit tests (look-ahead, survivorship, IC, FDR, DSR, strategy, spec)
+tests/         35 unit tests (look-ahead, survivorship, IC, FDR, DSR, strategy, spec, skill)
 data/raw/      CMC samples (committed) + cached raw responses (ignored)
 data/processed/ canonical parquet panels (committed; judges reproduce from here)
 outputs/       specs / reports / figures / llm_logs + reproduce_manifest.json
@@ -193,7 +193,7 @@ spec       -> 17a0743447437651…
 | Deflated Sharpe probability | 0.08 |
 | Monte-Carlo random-signal 95th-pct Sharpe | 1.00 |
 | OOS max drawdown | −6.6% |
-| Unit tests | 28 / 28 ✓ |
+| Unit tests | 35 / 35 ✓ |
 
 **Honest read.** The pooled IC of CMC F&G washes out because the sign
 flips across regimes — a textbook finding that the dev doc anticipated.
@@ -216,7 +216,7 @@ gate to regime-stratified or sweep `HOLDING_PERIODS`.
 | 5 — M3 Strategy layer          | ✅ done — t→t+1 backtest + cost grid + MC + 23/23 tests |
 | 6 — M4 LLM + Spec              | ✅ done — DeepSeek synth + report + StrategySpec + 28/28 tests |
 | 7 — M5 Reproducibility         | ✅ done — manifest hash gate + no-key sanity script |
-| 8 — M6 Submission              | 🚧 in progress (8.1 README ✅, 8.2 Skills wrapper ⏳, 8.3 video / 8.5 checklist pending) |
+| 8 — M6 Submission              | 🚧 in progress (8.1 README ✅, 8.2 Skills wrapper ✅, 8.3 video / 8.5 checklist pending) |
 | 9 — M7 Optional add-ons        | ⏳ pending |
 
 See [development schedule](./docs/SignalForge-开发周期表.md) for the full
@@ -294,6 +294,18 @@ on rerun).
 
 To intentionally adopt new numbers (e.g. after editing a factor), delete
 `outputs/reproduce_manifest.json` and the next run will rewrite it.
+
+### Stage 8 — M6 Submission
+
+| File | What it provides |
+|---|---|
+| `src/spec/skill_wrapper.py` | §8.2 Skills-Marketplace wrapper. `run_skill(asset, risk)` reuses the cached, manifest-verified `StrategySpec`, drops cross-section factors when a single asset is requested, resizes `signal_to_position` + slippage per risk preference, and optionally attaches a live CMC F&G + global-metrics snapshot under `runtime_inputs`. Never re-runs the research / backtest pipeline at call time. CLI: `python -m src.spec.skill_wrapper --asset ETH --risk aggressive`. |
+| `tests/test_skill_wrapper.py` | 7 unit tests covering risk validation, single-asset factor filtering, panel-mode passthrough, risk-profile sizing math, no-key snapshot fallback, missing-cache error, and `spec_id` request-context tagging. |
+
+The skill is the surface other agents (and the optional x402 pay-per-call
+shim) call. Factor selection and IC numbers are **never** mutated by the
+caller's risk preference — that would be data-mining per request. Only
+the position-sizing + execution-assumption blocks are resized.
 
 ---
 
