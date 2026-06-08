@@ -55,7 +55,7 @@ See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 | 4 — M2 Research layer | ✅ done — IC/IR/FDR/regime/DSR + 14/14 tests green |
 | 5 — M3 Strategy layer | ✅ done — t→t+1 backtest + cost/MC + 23/23 tests green |
 | 6 — M4 LLM + Spec | ✅ done — DeepSeek synth + report + StrategySpec + 28/28 tests green |
-| 7 — M5 Reproducibility | ✅ done — reproduce.py runs 02→05 end-to-end, seed=42 |
+| 7 — M5 Reproducibility | ✅ done — reproduce.py + manifest hash gate + no-key sanity script |
 | 8 — M6 Submission | ⏳ pending |
 | 9 — M7 Optional add-ons | ⏳ pending |
 
@@ -143,12 +143,37 @@ python scripts/05_generate_spec.py
 # write the markdown research report (Stage 6 — with hallucination check)
 python scripts/06_write_report.py
 
-# one-click reproduction of 02 -> 05 (judges run this; seed=42)
+# one-click reproduction of 02 -> 06 with manifest hash check (judges run this)
 python scripts/reproduce.py
+
+# judge-no-key sanity: clears API env, wipes outputs, reruns, re-verifies
+python scripts/check_no_key_reproduction.py
 
 # run unit tests (all 28)
 pytest tests/ -v
 ```
+
+## Stage 7 — M5 Reproducibility (shipped 2026-06-08)
+
+Two guarantees the judges can verify with a single command each.
+
+| Script | What it proves |
+|---|---|
+| `scripts/reproduce.py` | Runs `02 -> 03 -> 04 -> 05 -> 06` with `PYTHONHASHSEED=42`, then canonicalises every numeric output (volatile keys like `created_at` are masked) and compares its SHA-256 to `outputs/reproduce_manifest.json`. Exits non-zero on any mismatch. |
+| `scripts/check_no_key_reproduction.py` | Snapshots `outputs/`, wipes the volatile JSONs, then re-invokes `reproduce.py` in a subprocess whose `CMC_API_KEY` and `DEEPSEEK_API_KEY` are both `""`. Confirms that the cached parquets under `data/processed/` plus the deterministic LLM-fallback templates are enough for any reviewer to rebuild every numerical field — no API credentials required. |
+
+Canonical hashes (manifest at `outputs/reproduce_manifest.json`):
+
+```
+research   -> 687293ce48a1b784…
+backtest   -> 3a39935acb085f32…
+spec       -> 17a0743447437651…
+```
+
+Re-run anytime; a clean pass prints `✓ reproduction PASSED — every
+numerical field matches the manifest`. To intentionally adopt new numbers
+(e.g. after editing a factor), delete `outputs/reproduce_manifest.json`
+and the next run will rewrite it.
 
 ## Stage 3 — M1 Factor layer (shipped 2026-06-08)
 
