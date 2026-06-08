@@ -2,35 +2,56 @@
   "spec_version": "1.0",
   "spec_id": "signalforge-cmc-fg-regime-v1",
   "name": "CMC Proprietary F&G Regime-Aware Multi-Factor Strategy",
-  "created_at": "2026-06-08T01:27:46.520293+00:00",
+  "created_at": "2026-06-08T01:39:15.635048+00:00",
   "description": "Regime-aware multi-factor strategy whose core edge is the CoinMarketCap proprietary Fear & Greed index (distinct from Alternative.me). No factor cleared FDR at the pooled level — see the regime-conditional attribution in the research output. Out-of-sample Sharpe = -0.992.",
   "data_sources": [
     {
       "provider": "CoinMarketCap",
       "endpoint": "/v3/fear-and-greed/historical",
       "field": "value",
-      "note": "CMC proprietary Fear & Greed — distinct algorithm from Alternative.me; under-researched alpha source.",
+      "note": "CMC proprietary Fear & Greed — distinct algorithm from Alternative.me; under-researched alpha source. Status on the supplied Basic-plan key: AVAILABLE — this endpoint powers the entire alpha story.",
       "is_proprietary": true
+    },
+    {
+      "provider": "CoinMarketCap",
+      "endpoint": "/v1/cryptocurrency/map",
+      "field": "id,symbol,first_historical_data,last_historical_data",
+      "note": "Universe scaffolding (0 credits). Status on the supplied Basic-plan key: AVAILABLE.",
+      "is_proprietary": false
+    },
+    {
+      "provider": "CoinMarketCap",
+      "endpoint": "/v1/global-metrics/quotes/latest",
+      "field": "btc_dominance,eth_dominance,total_market_cap",
+      "note": "Latest dominance / total-cap snapshot. Status on the supplied Basic-plan key: AVAILABLE — used as a live context attachment in the Stage 8.2 skill wrapper.",
+      "is_proprietary": false
     },
     {
       "provider": "CoinMarketCap",
       "endpoint": "/v1/global-metrics/quotes/historical",
       "field": "btc_dominance",
-      "note": null,
+      "note": "Status on the supplied Basic-plan key: 403 (plan-gated). Spec carried forward for Standard+ replays; the current run degrades to latest-snapshot only and emits no dominance time-series factors.",
       "is_proprietary": false
     },
     {
       "provider": "CoinMarketCap",
       "endpoint": "/v1/cryptocurrency/listings/historical",
       "field": null,
-      "note": "Point-in-time universe; survivorship-bias-free when available (Standard+ plan).",
+      "note": "Point-in-time universe; survivorship-bias-free when available. Status on the supplied Basic-plan key: 403 (plan-gated). Spec carried forward for Standard+ replays; the current run skips the cross-section factor pipeline (factors_cross_section.parquet is not produced).",
       "is_proprietary": false
     },
     {
       "provider": "CoinMarketCap",
       "endpoint": "/v2/cryptocurrency/ohlcv/historical",
       "field": null,
-      "note": null,
+      "note": "Status on the supplied Basic-plan key: 403 (plan-gated). Spec carried forward for Standard+ replays; the current run falls back to binance public klines covering 2023-06-29 → 2026-06-07 for the curated universe.",
+      "is_proprietary": false
+    },
+    {
+      "provider": "Binance",
+      "endpoint": "/api/v3/klines",
+      "field": "open,high,low,close,volume",
+      "note": "Public, key-less fallback for daily OHLCV when the CMC ohlcv/historical endpoint is plan-gated. Prices are infrastructure for forward-return / regime calculations; the unique alpha source remains the CMC proprietary F&G.",
       "is_proprietary": false
     }
   ],

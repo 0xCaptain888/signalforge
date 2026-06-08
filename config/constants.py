@@ -43,7 +43,14 @@ CMC_PLAN = "Basic"
 CMC_PLAN_CREDITS_PER_MONTH = 15_000
 CMC_PLAN_RATE_LIMIT_PER_MIN = 50
 FG_HISTORY_MAX_DAYS = 500             # per page; paginate via start= for more
-OHLCV_EARLIEST = None                 # ohlcv/historical NOT available on Basic
+OHLCV_EARLIEST = None                 # CMC ohlcv/historical NOT available on Basic
+# Effective OHLCV start achieved via the Binance fallback
+# (scripts/01_pull_data.py::pull_ohlcv_via_binance). Filled by the
+# Stage 2-7 audit re-pass so downstream tooling never has to re-read
+# the parquet to know the data window.
+OHLCV_EARLIEST_VIA_FALLBACK = "2023-06-29"  # earliest BTCUSDT 1d kline in cached pull
+OHLCV_LATEST_VIA_FALLBACK = "2026-06-07"    # latest BTCUSDT 1d kline in cached pull
+OHLCV_FALLBACK_PROVIDER = "binance"         # public /api/v3/klines; no key required
 LISTINGS_HISTORICAL_AVAILABLE = False # listings/historical NOT available on Basic
 GLOBAL_METRICS_HISTORICAL_AVAILABLE = False
 GLOBAL_LATEST_HAS_ALTSEASON_FIELD = False  # build proxy in §4.2 per doc

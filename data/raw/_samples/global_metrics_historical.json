@@ -1,0 +1,16 @@
+{
+  "_sample_provenance": "Captured 2026-06-08 from scripts/00_smoke_test.py against the supplied CMC Pro API key (Basic plan).",
+  "_sample_status": "UNAVAILABLE_ON_PLAN",
+  "_endpoint": "/v1/global-metrics/quotes/historical",
+  "_observed_http_status": 403,
+  "_dev_doc_reference": "§3.3 endpoint [F]; §3.9 M0 back-fill triggers degraded path",
+  "_action_taken": "GLOBAL_METRICS_HISTORICAL_AVAILABLE = False in config/constants.py; scripts/01_pull_data.py calls pull_global_metrics_latest_only and persists a 1-row snapshot to data/processed/global_metrics_latest.parquet so dominance/cross factors degrade cleanly.",
+  "_upgrade_path": "Re-run 00_smoke_test.py after upgrading to Standard or higher; the smoke test will overwrite this placeholder with a real sample and scripts/01_pull_data.py will switch to the full historical path automatically.",
+  "status": {
+    "timestamp": "2026-06-08T00:00:00.000Z",
+    "error_code": 1006,
+    "error_message": "Your API Key subscription plan doesn't support this endpoint.",
+    "elapsed": 0,
+    "credit_count": 0
+  }
+}

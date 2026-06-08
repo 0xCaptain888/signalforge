@@ -76,25 +76,74 @@ def build_spec(
                 is_proprietary=True,
                 note=(
                     "CMC proprietary Fear & Greed — distinct algorithm from "
-                    "Alternative.me; under-researched alpha source."
+                    "Alternative.me; under-researched alpha source. "
+                    "Status on the supplied Basic-plan key: AVAILABLE — "
+                    "this endpoint powers the entire alpha story."
+                ),
+            ),
+            DataSource(
+                provider="CoinMarketCap",
+                endpoint="/v1/cryptocurrency/map",
+                field="id,symbol,first_historical_data,last_historical_data",
+                note=(
+                    "Universe scaffolding (0 credits). Status on the "
+                    "supplied Basic-plan key: AVAILABLE."
+                ),
+            ),
+            DataSource(
+                provider="CoinMarketCap",
+                endpoint="/v1/global-metrics/quotes/latest",
+                field="btc_dominance,eth_dominance,total_market_cap",
+                note=(
+                    "Latest dominance / total-cap snapshot. Status on the "
+                    "supplied Basic-plan key: AVAILABLE — used as a live "
+                    "context attachment in the Stage 8.2 skill wrapper."
                 ),
             ),
             DataSource(
                 provider="CoinMarketCap",
                 endpoint="/v1/global-metrics/quotes/historical",
                 field="btc_dominance",
+                note=(
+                    "Status on the supplied Basic-plan key: 403 (plan-gated). "
+                    "Spec carried forward for Standard+ replays; the current "
+                    "run degrades to latest-snapshot only and emits no "
+                    "dominance time-series factors."
+                ),
             ),
             DataSource(
                 provider="CoinMarketCap",
                 endpoint="/v1/cryptocurrency/listings/historical",
                 note=(
                     "Point-in-time universe; survivorship-bias-free when "
-                    "available (Standard+ plan)."
+                    "available. Status on the supplied Basic-plan key: 403 "
+                    "(plan-gated). Spec carried forward for Standard+ "
+                    "replays; the current run skips the cross-section "
+                    "factor pipeline (factors_cross_section.parquet is not "
+                    "produced)."
                 ),
             ),
             DataSource(
                 provider="CoinMarketCap",
                 endpoint="/v2/cryptocurrency/ohlcv/historical",
+                note=(
+                    "Status on the supplied Basic-plan key: 403 (plan-gated). "
+                    "Spec carried forward for Standard+ replays; the current "
+                    f"run falls back to {C.OHLCV_FALLBACK_PROVIDER} public "
+                    f"klines covering {C.OHLCV_EARLIEST_VIA_FALLBACK} → "
+                    f"{C.OHLCV_LATEST_VIA_FALLBACK} for the curated universe."
+                ),
+            ),
+            DataSource(
+                provider="Binance",
+                endpoint="/api/v3/klines",
+                field="open,high,low,close,volume",
+                note=(
+                    "Public, key-less fallback for daily OHLCV when the CMC "
+                    "ohlcv/historical endpoint is plan-gated. Prices are "
+                    "infrastructure for forward-return / regime calculations; "
+                    "the unique alpha source remains the CMC proprietary F&G."
+                ),
             ),
         ],
         universe={
