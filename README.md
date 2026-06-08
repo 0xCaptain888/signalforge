@@ -22,6 +22,11 @@ Stage 3 (M1 factor layer) shipped — all 5 unit tests for no-look-ahead and
 survivorship-bias are green. The factor code is data-source agnostic, so it
 runs end-to-end as soon as price / dominance data arrives via any of the
 fallback paths discussed in M0 findings.
+Stage 4 (M2 research layer) shipped — IC / rolling IR / t-stat / IC-decay /
+regime-layered attribution / BH-FDR multiple-testing correction / Deflated
+Sharpe. 14 / 14 unit tests are green (5 from Stage 3 + 9 new). The pipeline
+script `scripts/03_run_research.py` is ready to consume the parquet panels
+the moment they exist.
 See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 
 | Stage | Status |
@@ -30,7 +35,7 @@ See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 | 1 — Scaffold | ✅ done |
 | 2 — M0 Data layer smoke | ⚠️ partial — see "M0 findings" below |
 | 3 — M1 Factor layer | ✅ done — code + 5/5 unit tests green |
-| 4 — M2 Research layer | ⏳ pending |
+| 4 — M2 Research layer | ✅ done — IC/IR/FDR/regime/DSR + 14/14 tests green |
 | 5 — M3 Strategy layer | ⏳ pending |
 | 6 — M4 LLM + Spec | ⏳ pending |
 | 7 — M5 Reproducibility | ⏳ pending |
@@ -77,7 +82,10 @@ python scripts/00_smoke_test.py
 # build factor panels (Stage 3 — needs parquet outputs from 01_pull_data.py)
 python scripts/02_build_factors.py
 
-# run unit tests (no-lookahead + survivorship-bias)
+# run factor research (Stage 4 — IC / IR / FDR / regime + figures)
+python scripts/03_run_research.py
+
+# run unit tests (no-lookahead + survivorship-bias + IC + multiple-testing)
 pytest tests/ -v
 ```
 
@@ -100,6 +108,38 @@ Unit tests (all green):
   history; rolling windows return NaN before `min_periods` is met.
 - `tests/test_survivorship.py` — universe at every rebalance date matches
   the snapshot for THAT date, including delisted coins and new listings.
+
+## Stage 4 — M2 Research layer (shipped 2026-06-08)
+
+The scoring core. Every metric pairs the factor at t with a **strictly
+future** return; the few rolling estimators emit values only after a full
+window of history exists.
+
+| File | What it provides |
+|---|---|
+| `src/research/ic.py`               | `forward_returns`, `timeseries_ic`, `rolling_ic_series`, `ir_and_tstat`, `cross_section_ic`, `ic_decay` |
+| `src/research/regime_attrib.py`    | `regime_layered_ic` (per-bucket IC + t-stat), `regime_ic_matrix` (factor × regime heatmap source) |
+| `src/research/multiple_testing.py` | `bh_fdr` (Benjamini–Hochberg FDR), `deflated_sharpe` (López de Prado DSR) |
+| `src/research/robustness.py`       | `time_split`, `walk_forward_windows`, `parameter_plateau`, `cost_sensitivity`, `stationary_block_bootstrap` |
+
+Orchestrator: `scripts/03_run_research.py` runs every factor in
+`factors_timeseries.parquet` through {pooled IC, rolling-60d IR/t-stat,
+IC decay at HOLDING_PERIODS, regime-layered attribution, BH-FDR}, then
+writes:
+
+- `outputs/research_results.json` — machine-readable scorecard
+- `outputs/figures/ic_decay.png`
+- `outputs/figures/regime_ic_heatmap.png`
+
+The script depends on `ohlcv.parquet` for BTC forward returns, so it
+becomes runnable end-to-end the moment the Stage 2 price-data blocker
+is resolved.
+
+Additional unit tests (all green):
+- `tests/test_ic.py` — `forward_returns` uses only future closes, IC
+  recovers a constructed monotone signal, rolling IC respects window.
+- `tests/test_multiple_testing.py` — BH-FDR flags only truly small p's,
+  handles NaN inputs, DSR shrinks monotonically with more trials.
 
 ## Architecture (planned)
 
