@@ -17,13 +17,14 @@ historical API and cannot be honestly backtested. **Rigor over hype.**
 
 ## Status
 
-Currently at **Stage 1 — Project Scaffold** (see [development schedule](./docs/SignalForge-开发周期表.md)).
+Stage 1 complete (project installs cleanly via `pip install -e .`).
+See full plan in [development schedule](./docs/SignalForge-开发周期表.md).
 
 | Stage | Status |
 |---|---|
 | 0 — Repo init | ✅ done |
-| 1 — Scaffold | 🚧 in progress |
-| 2 — M0 Data layer smoke | ⏳ pending |
+| 1 — Scaffold | ✅ done |
+| 2 — M0 Data layer smoke | 🚧 next |
 | 3 — M1 Factor layer | ⏳ pending |
 | 4 — M2 Research layer | ⏳ pending |
 | 5 — M3 Strategy layer | ⏳ pending |
