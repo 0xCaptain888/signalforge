@@ -71,6 +71,11 @@ def main() -> None:
     fwd5 = forward_returns(btc, 5)
     factor_cols = [c for c in ts.columns if c != "value_classification"]
 
+    # Top-level dict shape matches dev-doc §5.5 (`factors` + `n_trials`);
+    # `horizon_primary` is an additive convenience field — every IC number
+    # in `factors[*].ic_overall` is computed at this forward-return horizon
+    # so downstream consumers (spec builder, report writer) do not have to
+    # re-derive it from code.
     results: dict = {"factors": {}, "n_trials": 0, "horizon_primary": 5}
     pvals: list[float] = []
     pnames: list[str] = []
@@ -87,6 +92,10 @@ def main() -> None:
             "ic_overall": base["ic"],
             "p_overall": base["p"],
             "n": base["n"],
+            # Dev-doc §5.5 line 1179 names this field "mean_ic"; we keep the
+            # legacy alias "mean_ic_rolling" alongside it for any reader that
+            # bookmarked the previous schema (both hold the same value).
+            "mean_ic": stat["mean_ic"],
             "mean_ic_rolling": stat["mean_ic"],
             "ir": stat["ir"],
             "t_stat": stat["t_stat"],
@@ -96,8 +105,11 @@ def main() -> None:
         if not np.isnan(base["p"]):
             pvals.append(base["p"])
             pnames.append(col)
-        # Trial budget: 1 pooled IC + one per non-empty regime bucket.
-        results["n_trials"] += 1 + int((~lay["ic"].isna()).sum())
+        # Trial budget per dev-doc §5.5 line 1185: 1 pooled IC + one trial
+        # per regime row emitted by regime_layered_ic (NaN rows included —
+        # the doc counts every regime bucket that was attempted, not just
+        # the ones that produced a number).
+        results["n_trials"] += 1 + len(lay)
 
     # ------------------------------------------------------------ FDR
     fdr = bh_fdr(pvals, q=C.FDR_Q)

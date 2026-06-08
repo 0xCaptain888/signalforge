@@ -28,8 +28,8 @@
   "deflated_sharpe": {
     "sharpe_daily": -0.051940289529120935,
     "sharpe_annual": -0.9923178381318417,
-    "deflated_sharpe_prob": 0.0008708912582542083,
-    "n_trials": 42,
+    "deflated_sharpe_prob": 0.0007942673233153118,
+    "n_trials": 45,
     "n_obs": 322
   },
   "monte_carlo": {

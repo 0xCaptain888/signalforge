@@ -77,7 +77,7 @@ identical tests — left to future work.
 We apply Benjamini–Hochberg FDR (q = 0.10) across all candidate factors and
 report López de Prado's Deflated Sharpe Ratio for the realised strategy.
 DSR probability = **0.00** over
-42 trials and 322 observations.
+45 trials and 322 observations.
 
 ## 7. Strategy & Backtest
 
