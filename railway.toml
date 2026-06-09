@@ -1,5 +1,4 @@
 [build]
 cmd = "pip install -e ."
 
-[start]
-cmd = "python scripts/reproduce.py"
+start = "python scripts/reproduce.py"
