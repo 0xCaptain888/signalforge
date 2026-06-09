@@ -1,0 +1,6 @@
+services:
+  - type: worker
+    name: signalforge
+    runtime: python
+    buildCommand: pip install -e .
+    startCommand: python scripts/reproduce.py
