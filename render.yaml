@@ -1,6 +1,9 @@
 services:
-  - type: worker
-    name: signalforge
+  - type: web
+    name: signalforge-skill
     runtime: python
-    buildCommand: pip install -e .
-    startCommand: python scripts/reproduce.py
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn service.app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHONPATH
+        value: /opt/render/project/src
