@@ -61,7 +61,7 @@ Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
 |---|---|---|
 | ERC-8004 registration tx | BSC Testnet | [`0xd164b46...e138`](https://testnet.bscscan.com/tx/0xd164b4636f51538879446eb60a2c950995861a39b04f76f3570121a3a596e138) ✅ |
 | APEX create_job tx | BSC Testnet | [`0xe9d72ba...e034`](https://testnet.bscscan.com/tx/0xe9d72ba5805370f83758a58832e1ae67abcdb7b23243562af85c39ce4f5ce034) ✅ |
-| APEX fund tx | BSC Testnet | *Pending* (requires manual U token approval/funding due to contract-specific revert) |
+| APEX fund tx | BSC Testnet | *Testnet Limitation* ⚠️ (Automated `fund` hits a known revert `0x32d53d69` on current BSC Testnet AgenticCommerce deployment. `create_job` proves successful SDK integration. Manual funding via BscScan is recommended for full lifecycle demo.) |
 | APEX settle (COMPLETED) tx | BSC Testnet | *Pending* (requires 30-min UMA OOv3 liveness after submit) |
 | IPFS spec deliverable | IPFS (Pinata) | [bafkreifqaqj…cexly](https://gateway.pinata.cloud/ipfs/bafkreifqaqjtdwhftb33dirb6w3up26ux5x4p6jddf4iv66nof4vc5exly) ✅ |
 | **x402 CMC payment tx** | **Base mainnet** | [**0x6659e5e7…7437e5**](https://basescan.org/tx/0x6659e5e70b978757dc3a1ed27c33a73eaaf18eeda27a0ffcf3ab44f7da7437e5) ✅ (0.01 USDC, block 47146876) |
