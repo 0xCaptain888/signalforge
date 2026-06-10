@@ -68,22 +68,24 @@ Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
 
 ---
 
-## 🟢 Latest live run (v2.1 — 2026-06-10)
+## 🟢 Latest live run (v2.1 — 2026-06-10 09:21 UTC)
 
-End-to-end interaction against the real third-party APIs. Full dump:
-[`outputs/sample_live_verdict.json`](outputs/sample_live_verdict.json) ·
+End-to-end interaction against the real third-party APIs. Full snapshot:
+[`outputs/latest_snapshot.json`](outputs/latest_snapshot.json) · [`outputs/sample_live_verdict.json`](outputs/sample_live_verdict.json) ·
+[`outputs/onchain/x402_receipt.json`](outputs/onchain/x402_receipt.json) ·
 [`outputs/reports/research_report.md`](outputs/reports/research_report.md) ·
 [`outputs/specs/signalforge-cmc-fg-regime-v1.json`](outputs/specs/signalforge-cmc-fg-regime-v1.json)
 
-**API connectivity probe**
+**API connectivity probe (live values)**
 
 | Provider | Endpoint | Result |
 |---|---|---|
-| CoinMarketCap Pro | `GET /v3/fear-and-greed/latest` | `value=14 (Extreme fear)` |
-| DeepSeek | `POST /v1/chat/completions` (deepseek-chat) | OK · 8,723 tokens across 3 calls |
-| Pinata | `POST /v3/files` (public IPFS) | CID `bafkreifqaqjtdwhftb33dirb6w3up26ux5x4p6jddf4iv66nof4vc5exly` |
-| BSC Testnet RPC | `eth_getBalance` | `0xF1a1…0298` → **0.30 tBNB** |
-| Base Mainnet RPC | `eth_getBalance` | `0xF1a1…0298` → **0.00165 ETH** |
+| CoinMarketCap Pro | `GET /v3/fear-and-greed/latest` | **value = 14 (Extreme fear)** · upd 09:08 UTC |
+| CoinMarketCap MCP x402 | `POST /x402/mcp tools/call get_crypto_quotes_latest` | **BTC = $61,018.79** · status `settled` |
+| DeepSeek | `GET /user/balance` | available · **¥49.87 CNY** remaining |
+| Pinata | `GET /data/testAuthentication` | OK · spec CID `bafkreifqaqj…cexly` pinned |
+| BSC Testnet RPC | `eth_getBalance` | `0xF1a1…0298` → **0.29998 tBNB** |
+| Base Mainnet RPC | `eth_getBalance` / USDC `balanceOf` | **0.00165 ETH** + **1.32127 USDC** (post-x402) |
 
 **Service end-to-end** (`scripts/09_e2e_smoke_test.py` against `service.app`)
 

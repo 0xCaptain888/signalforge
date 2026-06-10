@@ -1,0 +1,31 @@
+{
+  "captured_at": "2026-06-10T09:21:20.391823+00:00",
+  "cmc_fear_greed": {
+    "value": 14,
+    "update_time": "2026-06-10T09:08:10.029Z",
+    "value_classification": "Extreme fear"
+  },
+  "wallet": {
+    "address": "0xF1a116AF29cfff212e496b6356f8F22ABd7c0298",
+    "balances": {
+      "bsc_testnet_tBNB": 0.29998175688,
+      "base_mainnet_ETH": 0.001646998722427008,
+      "base_sepolia_ETH": 0.0,
+      "base_mainnet_USDC": 1.321267
+    }
+  },
+  "pinata_auth": {
+    "message": "Congratulations! You are communicating with the Pinata API!"
+  },
+  "deepseek_balance": {
+    "is_available": true,
+    "balance_infos": [
+      {
+        "currency": "CNY",
+        "total_balance": "49.87",
+        "granted_balance": "0.00",
+        "topped_up_balance": "49.87"
+      }
+    ]
+  }
+}
