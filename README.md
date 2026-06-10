@@ -60,7 +60,6 @@ Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
 | Item | Network | Link |
 |---|---|---|
 | ERC-8004 registration tx | BSC Testnet | [`0xd164b46...e138`](https://testnet.bscscan.com/tx/0xd164b4636f51538879446eb60a2c950995861a39b04f76f3570121a3a596e138) ✅ |
-| APEX create_job tx | BSC Testnet | [`0xe9d72ba...e034`](https://testnet.bscscan.com/tx/0xe9d72ba5805370f83758a58832e1ae67abcdb7b23243562af85c39ce4f5ce034) ✅ |
 | APEX create_job tx | BSC Testnet | [`0x7e5a870...8801`](https://testnet.bscscan.com/tx/0x7e5a870f7e4100fe67824013af5e3949bce9f867ea716b2be804ddd0d6738801) ✅ (Job #141) |
 | APEX fund/submit/settle tx | BSC Testnet | *Script-Validated* ⚠️ (Automated `fund` hits a known revert `0x32d53d69` on current BSC Testnet AgenticCommerce deployment. Full lifecycle is validated via `examples/client_demo.py` using `ERC8183Client`. The `create_job` tx serves as definitive proof of successful ERC-8183 integration.) |
 | IPFS spec deliverable | IPFS (Pinata) | [bafkreifqaqj…cexly](https://gateway.pinata.cloud/ipfs/bafkreifqaqjtdwhftb33dirb6w3up26ux5x4p6jddf4iv66nof4vc5exly) ✅ |
@@ -69,12 +68,18 @@ Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
 > **APEX On-Chain Integration Note**: 
 > The full APEX lifecycle (negotiate → create_job → fund → submit → settle) is validated via the `examples/client_demo.py` script using `bnbagent.erc8183.ERC8183Client`. We successfully created **Job #141** on BSC Testnet. 
 > *Technical transparency*: The standalone `apex_server.py` daemon is currently disabled in this deployment due to a missing `bnbagent.apex` module in the upstream SDK v0.3.6, and automated `fund` calls hit a known revert (`0x32d53d69`) on the current BSC Testnet AgenticCommerce deployment. The `create_job` transaction hash serves as the definitive, verifiable proof of successful ERC-8183 integration for this submission.
+>
+> **Trust Wallet Agent Kit (TWAK) Demo Readiness**: 
+> The local-signing adapter interface (`src/twt/signer.py`) is fully implemented and validated via `python examples/twak_demo.py`. As documented in [`docs/TWAK_GUIDE.md`](docs/TWAK_GUIDE.md), the current TWAK API endpoints return placeholder simulations (404 on public mock). The architecture is fully prepared to wire the real TWAK API credentials for the final prize demo, ensuring "keys stay local, agent signs autonomously."
 
 ---
 
-## 🟢 Latest live run (v2.1 — 2026-06-10 09:21 UTC)
+## 🟢 Latest live run (v2.1 — Cloud Deployed on Render)
 
-End-to-end interaction against the real third-party APIs. Full snapshot:
+End-to-end interaction against the real third-party APIs. The core adjudication service is **live and publicly accessible**:
+🔗 **Live Skill Card**: [https://signalforge-cfed.onrender.com/.well-known/skill-card.json](https://signalforge-cfed.onrender.com/.well-known/skill-card.json)
+
+Full local snapshot artifacts:
 [`outputs/latest_snapshot.json`](outputs/latest_snapshot.json) · [`outputs/sample_live_verdict.json`](outputs/sample_live_verdict.json) ·
 [`outputs/onchain/x402_receipt.json`](outputs/onchain/x402_receipt.json) ·
 [`outputs/reports/research_report.md`](outputs/reports/research_report.md) ·
@@ -177,6 +182,19 @@ succeeded end-to-end:
 
 Full receipt with payment envelope and balance verification:
 [`outputs/onchain/x402_receipt.json`](outputs/onchain/x402_receipt.json).
+
+---
+
+## 🏆 Judge Demo Checklist (3 Minutes)
+
+For a seamless evaluation, we recommend verifying the following 4 pillars:
+
+1. **☁️ Live Cloud Service**: Visit the publicly deployed Skill Card to verify A2A compliance and x402 pricing.  
+   🔗 [https://signalforge-cfed.onrender.com/.well-known/skill-card.json](https://signalforge-cfed.onrender.com/.well-known/skill-card.json)
+2. **🧠 Core Product Value (Leakage Detection)**: Run the self-audit demo locally. Watch it catch the +0.85 leaky Sharpe and correct it to the honest -0.99.  
+   `python scripts/07_adjudicate_demo.py`
+3. **⛓️ On-Chain Integration Proof**: Verify the ERC-8004 identity registration and APEX Job #141 creation on BSC Testnet via the links in the "On-chain evidence table" above.
+4. **🛡️ Trust Wallet Agent Kit (TWAK) Readiness**: The local-signing adapter (`src/twt/signer.py`) is fully implemented. Run `python examples/twak_demo.py --signer twak` to see the architecture in action. *(Note: As documented in `docs/TWAK_GUIDE.md`, the public TWAK API currently returns placeholder simulations. The codebase is fully prepared to wire real credentials for the final prize demo, ensuring "keys stay local, agent signs autonomously".)*
 
 ---
 

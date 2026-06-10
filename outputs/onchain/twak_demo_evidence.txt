@@ -1,0 +1,22 @@
+TWAK address fetch failed (Client error '404 Not Found' for url 'https://api.trustwallet.com/v1/agent/v1/wallet/address'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404); simulation address
+TWAK sign_message failed (Client error '404 Not Found' for url 'https://api.trustwallet.com/v1/agent/v1/wallet/sign-message'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404); simulation sig
+
+[TWAK Demo] Using signer: TWAK
+  Wallet address: 0xTWAK000000000000000000000000000000000000
+  [Demo] personal_sign:
+    message  : SignalForge TWAK demo — keys stay local, agent signs autonomously
+    signature: 0x74776b74776b74776b74776b74776b74776b74776b74776b...
+
+  NOTE: endpoints in src/twt/signer.py are PLACEHOLDERS.
+  See docs/TWAK_GUIDE.md to wire the real TWAK API before the prize demo.
+
+  Done.
+
+
+[TWAK Demo] Using signer: EVM
+  Wallet address: 0xF1a116AF29cfff212e496b6356f8F22ABd7c0298
+
+  Done.
+
