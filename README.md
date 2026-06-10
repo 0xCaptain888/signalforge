@@ -1,0 +1,174 @@
+# ⚖️ SignalForge — Signal Edge Adjudicator
+
+> **The referee for the agent economy.**
+> Give it any trading signal — it tells you whether the alpha is **real, noise, or leakage**.
+
+[![CI](https://github.com/0xCaptain888/signalforge/actions/workflows/ci.yml/badge.svg)](https://github.com/0xCaptain888/signalforge/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-Apache--2.0-green)
+![Track 2](https://img.shields.io/badge/BNB%20Hack-Track%202%20Strategy%20Skills-yellow)
+
+---
+
+## Why SignalForge
+
+In the agent economy, trading signals are everywhere. Agents generate strategies,
+sell signals, and quote backtest Sharpe ratios at each other. But **most backtests
+are overfitted — or worse, silently leaking future data.**
+
+**Who validates the validators?**
+
+SignalForge is a paid, on-chain-settleable adjudication service. Any agent submits
+a candidate signal; SignalForge runs institutional-grade statistical validation
+(López de Prado Deflated Sharpe, BH-FDR, walk-forward, leakage detection,
+regime-conditional significance) and returns a structured verdict:
+
+```
+STRONG_ACCEPT · ACCEPT · WEAK · REJECT · LEAKAGE_DETECTED
+```
+
+### Our proof: we caught our own strategy lying
+
+This project began as a CMC Fear & Greed trading strategy (v1). Its naive backtest
+showed a tempting **+0.85 OOS Sharpe**. SignalForge's leakage audit enforced
+IS-only calibration and revealed the truth: **−0.99**. The regime weights had been
+leaking out-of-sample data.
+
+| Calibration | OOS Sharpe | Verdict |
+|---|---|---|
+| Naive (full-sample weights) | **+0.85** | what a leaky backtest sells you |
+| IS-only (honest) | **−0.99** | the truth |
+| Gap | **1.84** > 0.80 threshold | → `LEAKAGE_DETECTED` |
+
+**That honest negative number is the product working.** Edge confidence: **12/100**.
+Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
+(see Quickstart) and is the core demo of this submission.
+
+---
+
+## Three-stack integration (sponsor evidence)
+
+| Stack | What we use | Evidence |
+|---|---|---|
+| **① CMC Agent Hub** | Proprietary F&G `/v3/fear-and-greed/historical` (1075 days) + Data MCP (12 tools) + **x402 $0.01/call on Base** | `outputs/cmc_provenance.json` — 3-channel record incl. x402 payment tx |
+| **② BNB AI Agent SDK** | ERC-8004 on-chain identity + APEX (ERC-8183) escrow jobs + IPFS deliverables + UMA OOv3 settlement | `outputs/onchain/registration.json`, `outputs/onchain/client_demo_result.json` |
+| **③ CMC Skills Marketplace** | Listed skill, x402-gated `$0.50 USDC` per adjudication | `GET /.well-known/skill-card.json` |
+| Trust Wallet Agent Kit *(optional)* | Local-signing adapter, `--signer twak` | `examples/twak_demo.py`, `docs/TWAK_GUIDE.md` |
+
+### On-chain evidence table (filled at submission time)
+
+| Item | Network | Link |
+|---|---|---|
+| ERC-8004 registration tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
+| APEX create_job tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
+| APEX fund tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
+| APEX settle (COMPLETED) tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
+| IPFS verdict deliverable | IPFS | `https://gateway.pinata.cloud/ipfs/[FILL]` |
+| x402 CMC payment tx | Base | `https://basescan.org/tx/[FILL]` |
+
+---
+
+## Quickstart (judges: 3 commands, ~2 minutes)
+
+```bash
+git clone https://github.com/0xCaptain888/signalforge && cd signalforge
+pip install -r requirements.txt
+
+# 1. Verify the scoring engine (v1 data must output exactly 12)
+python src/adjudicator/scoring.py
+#    → verify_v1_score: score=12, expected=12, PASS
+
+# 2. Run the adjudication demo (the LEAKAGE_DETECTED highlight)
+python scripts/07_adjudicate_demo.py
+#    → verdict=LEAKAGE_DETECTED, edge_confidence=12, leaked=True
+
+# 3. Full test suite + end-to-end smoke test
+pytest tests/ -m "not onchain"        # ~80 tests
+python scripts/09_e2e_smoke_test.py   # service → adjudicator pipeline
+```
+
+No API keys needed for any of the above — the adjudicator degrades gracefully to
+the committed v1 result set (zero-key reproduction).
+
+### Run the paid service locally
+
+```bash
+cp .env.example .env            # fill in keys (see docs)
+python -m uvicorn service.app:app --port 8000
+
+# x402 gate in action:
+curl -X POST localhost:8000/adjudicate -H 'Content-Type: application/json' \
+  -d '{"asset":"ETH","candidate_signal":{"name":"t","source":"cmc_fear_greed","definition":"fg<20","holding_period_days":5}}'
+#    → HTTP 402 + payment quote (x402, $0.50 USDC on Base)
+```
+
+### Run the demo console
+
+```bash
+cd ui && npm install && npm run dev   # http://localhost:3000
+```
+
+---
+
+## Statistical rigor (what the adjudicator actually checks)
+
+| Check | Method | v1 result |
+|---|---|---|
+| Selection bias | Deflated Sharpe Ratio (López de Prado) | prob = 0.001 → no alpha |
+| Multiple testing | Benjamini–Hochberg FDR, q = 0.10, pooled | 0 factors survive |
+| Out-of-sample robustness | Walk-forward, 7 windows | median Sharpe −2.10 |
+| Overfit signature | Parameter plateau scan | spike (parameter-sensitive) |
+| Look-ahead bias | Tamper-future unit tests | PASS |
+| Data leakage | Naive vs IS-only calibration gap | **1.84 → LEAKAGE_DETECTED** |
+| Local alpha | Regime-conditional IC | CHOP_NEUTRAL: IC −0.30, t = −4.56 |
+
+Edge Confidence is a transparent deterministic function of the above —
+baseline 59, six rules, every point itemized in the verdict's `reasons` array.
+See [`docs/PRODUCT.md`](docs/PRODUCT.md) for the full API contract.
+
+---
+
+## Architecture
+
+```
+Callers (any agent)
+   │ CMC Skills find_skill()          │ APEX on-chain jobs
+   ▼                                  ▼
+M-SKILL  FastAPI :8000  ──────  M-BNB  APEX server :8001
+   │  x402 gate $0.50/call         ERC-8004 identity · ERC-8183 escrow
+   ▼                               IPFS deliverable · UMA OOv3 settle
+M-CORE  adjudicator (6-rule scoring · leakage detection · zero recompute)
+   ▼
+M-CMC   ① REST history  ② Data MCP  ③ x402 pay-per-call   → provenance.json
+```
+
+Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+## Repository layout
+
+```
+src/adjudicator/   verdict engine (schema · scoring · leakage · core)
+src/cmc/           REST / MCP / x402 clients + provenance recorder
+src/bnb/           ERC-8004 registration + APEX adjudication server
+src/twt/           Trust Wallet Agent Kit signing adapter
+service/           FastAPI skill + x402 middleware + SKILL.md
+examples/          APEX 8-step client demo · TWAK demo
+ui/                React demo console (gauge · Sharpe bars · evidence panel)
+tests/             ~80 tests across 7 modules
+scripts/           demo · x402 proof · e2e smoke · env check
+outputs/specs/     backtestable StrategySpec (Track 2 deliverable)
+docs/              architecture · product · changelog · demo script · judge checklist
+```
+
+## For judges
+
+Everything claimed above is verifiable in ~5 minutes:
+[`docs/JUDGE_CHECKLIST.md`](docs/JUDGE_CHECKLIST.md)
+
+> **APEX settlement note:** settlement requires a 30-minute UMA OOv3 liveness
+> (no-dispute) window. The submission shows a pre-settled job; a fresh one can be
+> triggered any time with `python examples/client_demo.py`.
+
+## License
+
+Apache-2.0

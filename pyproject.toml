@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "signalforge"
+version = "2.1.0"
+description = "Signal Edge Adjudicator — validates trading signals for real alpha vs overfit/leakage"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "0xCaptain888" }]
+keywords = ["trading", "quant", "CMC", "BNB", "signal-validation", "hackathon"]
+
+dependencies = [
+    "pydantic>=2.0",
+    "requests>=2.28",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+skill = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "httpx>=0.26",
+    "eth-account>=0.10",
+    "web3>=6.0",
+    "starlette>=0.36",
+]
+quant = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "statsmodels>=0.14",
+    "pyarrow>=12.0",
+]
+bnb = [
+    "bnbagent[server,ipfs]>=0.1.1",
+    "eth-account>=0.10",
+    "web3>=6.0",
+]
+dev = [
+    "pytest>=7.4",
+    "pytest-mock>=3.12",
+    "httpx>=0.26",
+]
+all = ["signalforge[skill,quant,bnb,dev]"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src", "service"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "onchain: requires BSC Testnet connection (deselect with -m 'not onchain')",
+]
+addopts = "-v -m 'not onchain'"

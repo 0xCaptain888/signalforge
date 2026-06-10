@@ -1,0 +1,75 @@
+{
+  "spec_id": "signalforge-cmc-fg-regime-v1",
+  "spec_version": "2.1.0",
+  "generated_by": "SignalForge Signal Edge Adjudicator v2.1",
+  "generated_at": "2026-06-10T00:00:00Z",
+  "signal": {
+    "name": "CMC F&G Extreme Reversal - CHOP_NEUTRAL Regime Filter",
+    "source": "CMC proprietary Fear & Greed Index",
+    "source_endpoint": "https://pro-api.coinmarketcap.com/v3/fear-and-greed/historical",
+    "source_note": "CMC proprietary - NOT Alternative.me (distinct methodology)",
+    "entry_rule": "IF daily_fg < 20 AND regime == 'CHOP_NEUTRAL' THEN LONG at next_day_open",
+    "exit_rule": "IF daily_fg > 80 OR holding_days >= 5 THEN EXIT at next_day_open",
+    "regime_definition": "CHOP_NEUTRAL = ADX_14 < 25 AND ABS(fg_5d_change) < 10",
+    "holding_period_days": 5,
+    "signal_frequency": "daily - evaluated after 16:00 UTC market close",
+    "signal_direction": "mean-reversion (long-only)"
+  },
+  "universe": {
+    "assets": ["ETH"],
+    "exchange": "spot",
+    "data_source_ohlcv": "CMC /v2/cryptocurrency/ohlcv/historical"
+  },
+  "backtest_parameters": {
+    "in_sample_start": "2023-06-29",
+    "in_sample_end": "2025-01-01",
+    "out_of_sample_start": "2025-01-01",
+    "out_of_sample_end": "2026-06-07",
+    "calibration_method": "IS-only (no lookahead - regime_weights fitted on IS period only)",
+    "execution_time": "next_open_after_signal",
+    "fees_bps": 10,
+    "slippage_bps": 5,
+    "position_sizing": "equal_weight",
+    "leverage": 1.0
+  },
+  "performance": {
+    "in_sample_sharpe": 0.31,
+    "oos_sharpe_naive_leaky": 0.85,
+    "oos_sharpe_is_only_honest": -0.99,
+    "oos_max_drawdown": -0.06,
+    "walk_forward_median_sharpe": -2.10,
+    "walk_forward_windows": 7,
+    "fdr_significant_factors": 0,
+    "deflated_sharpe_probability": 0.001,
+    "note": "Naive calibration leaks OOS data into regime_weights -> +0.85 Sharpe. IS-only is the honest result: -0.99. Gap=1.84 > threshold=0.80 -> LEAKAGE_DETECTED."
+  },
+  "adjudication": {
+    "verdict": "LEAKAGE_DETECTED",
+    "edge_confidence": 12,
+    "recommended_action": "DO NOT TRADE - data leakage confirmed.",
+    "regime_finding": {
+      "bucket": "CHOP_NEUTRAL",
+      "ic": -0.30,
+      "t_stat": -4.56,
+      "p_value": 9e-06,
+      "interpretation": "Statistically significant alpha in CHOP_NEUTRAL sub-regime only. Not robust for deployment."
+    }
+  },
+  "reproducibility": {
+    "seed": 42,
+    "reproduce_command": "python scripts/reproduce.py",
+    "backtest_script": "scripts/04_backtest.py",
+    "backtest_function": "run_backtest(asset='ETH', calibrate_is_only=True, seed=42)",
+    "research_script": "scripts/03_run_research.py",
+    "no_key_reproduction": "python scripts/check_no_key_reproduction.py",
+    "manifest_hash_file": "outputs/reproduce_manifest.json"
+  },
+  "data_provenance": {
+    "fear_greed_channel": "CMC REST /v3/fear-and-greed/historical",
+    "fear_greed_records": 1075,
+    "date_range": "2023-06-29 to 2026-06-07",
+    "mcp_verification_tool": "mcp.coinmarketcap.com/mcp -> get_fear_greed_index",
+    "x402_evidence": "See outputs/cmc_provenance.json for x402 Base payment tx",
+    "all_channels_used": ["rest", "mcp", "x402"]
+  }
+}

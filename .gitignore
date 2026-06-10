@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Environment — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# SignalForge v2 private outputs (P2-10)
+outputs/onchain/registration.json
+outputs/onchain/client_demo_result.json
+outputs/onchain/job_lifecycle.json
+outputs/verdicts/verdict_*.json
+
+# Wallet files
+*.keystore
+.bnbagent/
+
+# UI build artifacts
+ui/dist/
+ui/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
