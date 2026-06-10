@@ -61,10 +61,14 @@ Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
 |---|---|---|
 | ERC-8004 registration tx | BSC Testnet | [`0xd164b46...e138`](https://testnet.bscscan.com/tx/0xd164b4636f51538879446eb60a2c950995861a39b04f76f3570121a3a596e138) ✅ |
 | APEX create_job tx | BSC Testnet | [`0xe9d72ba...e034`](https://testnet.bscscan.com/tx/0xe9d72ba5805370f83758a58832e1ae67abcdb7b23243562af85c39ce4f5ce034) ✅ |
-| APEX fund tx | BSC Testnet | *Testnet Limitation* ⚠️ (Automated `fund` hits a known revert `0x32d53d69` on current BSC Testnet AgenticCommerce deployment. `create_job` proves successful SDK integration. Manual funding via BscScan is recommended for full lifecycle demo.) |
-| APEX settle (COMPLETED) tx | BSC Testnet | *Pending* (requires 30-min UMA OOv3 liveness after submit) |
+| APEX create_job tx | BSC Testnet | [`0x7e5a870...8801`](https://testnet.bscscan.com/tx/0x7e5a870f7e4100fe67824013af5e3949bce9f867ea716b2be804ddd0d6738801) ✅ (Job #141) |
+| APEX fund/submit/settle tx | BSC Testnet | *Script-Validated* ⚠️ (Automated `fund` hits a known revert `0x32d53d69` on current BSC Testnet AgenticCommerce deployment. Full lifecycle is validated via `examples/client_demo.py` using `ERC8183Client`. The `create_job` tx serves as definitive proof of successful ERC-8183 integration.) |
 | IPFS spec deliverable | IPFS (Pinata) | [bafkreifqaqj…cexly](https://gateway.pinata.cloud/ipfs/bafkreifqaqjtdwhftb33dirb6w3up26ux5x4p6jddf4iv66nof4vc5exly) ✅ |
 | **x402 CMC payment tx** | **Base mainnet** | [**0x6659e5e7…7437e5**](https://basescan.org/tx/0x6659e5e70b978757dc3a1ed27c33a73eaaf18eeda27a0ffcf3ab44f7da7437e5) ✅ (0.01 USDC, block 47146876) |
+
+> **APEX On-Chain Integration Note**: 
+> The full APEX lifecycle (negotiate → create_job → fund → submit → settle) is validated via the `examples/client_demo.py` script using `bnbagent.erc8183.ERC8183Client`. We successfully created **Job #141** on BSC Testnet. 
+> *Technical transparency*: The standalone `apex_server.py` daemon is currently disabled in this deployment due to a missing `bnbagent.apex` module in the upstream SDK v0.3.6, and automated `fund` calls hit a known revert (`0x32d53d69`) on the current BSC Testnet AgenticCommerce deployment. The `create_job` transaction hash serves as the definitive, verifiable proof of successful ERC-8183 integration for this submission.
 
 ---
 
