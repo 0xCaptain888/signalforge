@@ -13,6 +13,7 @@ Demonstrates an external agent paying SignalForge for on-chain adjudication:
 
 All tx hashes are written to outputs/onchain/client_demo_result.json.
 """
+
 from __future__ import annotations
 
 import json
@@ -50,13 +51,15 @@ def main():
     print("\n[Step 0] Initializing client wallet...")
     client_wallet = EVMWalletProvider(
         password=wallet_password,
-        private_key=os.environ.get("CLIENT_PRIVATE_KEY") or os.environ.get("PRIVATE_KEY"),
+        private_key=os.environ.get("CLIENT_PRIVATE_KEY")
+        or os.environ.get("PRIVATE_KEY"),
     )
     print(f"  Client wallet: {client_wallet.address}")
 
     # Step 1: discover SignalForge via ERC-8004
     print("\n[Step 1] Discovering SignalForge agent via ERC-8004 registry...")
     from src.bnb.register import get_registration
+
     reg = get_registration()
     if not reg:
         print("  WARNING: No registration.json. Run: python src/bnb/register.py first")
@@ -79,6 +82,7 @@ def main():
     # Step 2: negotiate
     print(f"\n[Step 2] Negotiating price with {apex_url}...")
     import httpx
+
     adjudication_request = {
         "asset": "ETH",
         "candidate_signal": {
@@ -92,8 +96,10 @@ def main():
     try:
         r = httpx.post(
             f"{apex_url}/negotiate",
-            json={"description": json.dumps(adjudication_request),
-                  "client": client_wallet.address},
+            json={
+                "description": json.dumps(adjudication_request),
+                "client": client_wallet.address,
+            },
             timeout=30,
         )
         negotiate_resp = r.json()
@@ -111,15 +117,17 @@ def main():
     create_tx = fund_tx = None
     job_id = None
     try:
-        from bnbagent.apex.ops import APEXJobOps
-        from bnbagent.apex.config import APEXConfig
+        import time
+        from bnbagent.erc8183 import ERC8183Client
 
-        config = APEXConfig(wallet_provider=client_wallet, service_price=service_price_wei)
-        ops = APEXJobOps(config)
+        client = ERC8183Client(wallet_provider=client_wallet, network="bsc-testnet")
 
         print("\n  [3/5] Creating job on-chain...")
-        create_result = ops.create_job(
+        # expired_at: 2 days from now (must be >= now + dispute_window + buffer)
+        expired_at = int(time.time()) + 172800
+        create_result = client.create_job(
             provider=provider_address,
+            expired_at=expired_at,
             description=json.dumps(adjudication_request),
         )
         job_id = create_result["jobId"]
@@ -128,20 +136,11 @@ def main():
         print(f"       https://testnet.bscscan.com/tx/{create_tx}")
 
         print("\n  [4/5] Setting budget...")
-        ops.set_budget(job_id=job_id, amount=service_price_wei)
+        client.set_budget(job_id=job_id, amount=int(service_price_wei))
 
         # P0-4 hardened approve + fund
         print("\n  [5/5] Approving U token + funding escrow...")
-        try:
-            from bnbagent.apex.ops import approve_token  # may not exist as public API
-            spender = getattr(config, "erc8183_address", ERC8183_ADDRESS)
-            approve_token(spender=spender, amount=service_price_wei, config=config)
-            print(f"       approve OK, spender={spender[:10]}...")
-        except (ImportError, AttributeError, Exception) as e:
-            print(f"       NOTE: approve_token skipped ({type(e).__name__}). "
-                  "fund() may handle approval internally.")
-
-        fund_result = ops.fund(job_id=job_id)
+        fund_result = client.fund(job_id=job_id, amount=int(service_price_wei))
         fund_tx = fund_result["transactionHash"]
         print(f"       funded, tx={fund_tx}")
         print(f"       https://testnet.bscscan.com/tx/{fund_tx}")
@@ -185,8 +184,12 @@ def main():
         "create_job_tx": create_tx,
         "fund_tx": fund_tx,
         "apex_url": apex_url,
-        "bscscan_create": f"https://testnet.bscscan.com/tx/{create_tx}" if create_tx else None,
-        "bscscan_fund": f"https://testnet.bscscan.com/tx/{fund_tx}" if fund_tx else None,
+        "bscscan_create": f"https://testnet.bscscan.com/tx/{create_tx}"
+        if create_tx
+        else None,
+        "bscscan_fund": f"https://testnet.bscscan.com/tx/{fund_tx}"
+        if fund_tx
+        else None,
         "executed_at": datetime.now(timezone.utc).isoformat(),
     }
     out = ONCHAIN_DIR / "client_demo_result.json"
