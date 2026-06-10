@@ -48,9 +48,17 @@ def _load_results() -> dict:
     spec_id = spec_glob[0].stem if spec_glob else "signalforge-cmc-fg-regime-v1"
 
     # strongest regime-conditional IC across all factors
+    # supports both schemas: dict {bucket: {ic,t_stat}} and list [{regime,ic,t_stat}]
     strongest_bucket = strongest_ic = strongest_t = None
     for fname, fdata in research.get("factors", {}).items():
-        for bucket, bdata in fdata.get("regime_ic", {}).items():
+        regime_ic = fdata.get("regime_ic", {})
+        if isinstance(regime_ic, dict):
+            iterable = regime_ic.items()
+        elif isinstance(regime_ic, list):
+            iterable = ((b.get("regime") or b.get("bucket"), b) for b in regime_ic)
+        else:
+            iterable = []
+        for bucket, bdata in iterable:
             t = abs(bdata.get("t_stat", 0))
             if strongest_t is None or t > abs(strongest_t):
                 strongest_bucket = bucket
