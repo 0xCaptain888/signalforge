@@ -1,9 +1,16 @@
+# Render deployment (Docker mode).
+# Skill service: auto-detected from Dockerfile.
+# Note: APEX service needs a SECOND Render service — create it manually with:
+#   Environment: Docker is fine, but override Docker Command to:
+#   python src/bnb/apex_server.py
 services:
   - type: web
     name: signalforge-skill
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python -m uvicorn service.app:app --host 0.0.0.0 --port $PORT
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
     envVars:
       - key: PYTHONPATH
-        value: /opt/render/project/src
+        value: /app
+      - key: X402_DEMO_MODE
+        value: "true"

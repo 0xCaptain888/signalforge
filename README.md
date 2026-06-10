@@ -1,398 +1,174 @@
-# SignalForge
+# ⚖️ SignalForge — Signal Edge Adjudicator
 
-> The first systematic factor-research engine for CoinMarketCap's **proprietary**
-> Fear & Greed index — an under-researched alpha source distinct from Alternative.me.
+> **The referee for the agent economy.**
+> Give it any trading signal — it tells you whether the alpha is **real, noise, or leakage**.
 
-Built for **BNB Hack Track 2 (Strategy Skills)** with the CMC special-prize
-narrative front-and-centre. Produces backtestable, regime-aware strategy
-specs from CMC proprietary market signals.
-
-| Track | Deliverable | Status |
-|---|---|---|
-| BNB Hack Track 2 | reproducible `StrategySpec` JSON + research report | ✅ shipped |
-| CMC special prize | CMC-proprietary F&G as the unique alpha source | ✅ shipped |
+[![CI](https://github.com/0xCaptain888/signalforge/actions/workflows/ci.yml/badge.svg)](https://github.com/0xCaptain888/signalforge/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-Apache--2.0-green)
+![Track 2](https://img.shields.io/badge/BNB%20Hack-Track%202%20Strategy%20Skills-yellow)
 
 ---
 
-## Why this is different
+## Why SignalForge
 
-Most public F&G research uses **Alternative.me**'s open index. CoinMarketCap
-runs its **OWN** F&G algorithm (volatility + momentum + volume + dominance +
-social) and exposes the full history via
-`/v3/fear-and-greed/historical`. We are the first to rigorously test its
-factor efficacy and engineer it into a reproducible strategy spec.
+In the agent economy, trading signals are everywhere. Agents generate strategies,
+sell signals, and quote backtest Sharpe ratios at each other. But **most backtests
+are overfitted — or worse, silently leaking future data.**
 
-We deliberately **EXCLUDED** ETF-flow / social-media / on-chain whale signals
-— none of them have a clean historical API on the supplied CMC tier, so
-none of them can be honestly back-tested. **Rigor over hype.**
+**Who validates the validators?**
+
+SignalForge is a paid, on-chain-settleable adjudication service. Any agent submits
+a candidate signal; SignalForge runs institutional-grade statistical validation
+(López de Prado Deflated Sharpe, BH-FDR, walk-forward, leakage detection,
+regime-conditional significance) and returns a structured verdict:
+
+```
+STRONG_ACCEPT · ACCEPT · WEAK · REJECT · LEAKAGE_DETECTED
+```
+
+### Our proof: we caught our own strategy lying
+
+This project began as a CMC Fear & Greed trading strategy (v1). Its naive backtest
+showed a tempting **+0.85 OOS Sharpe**. SignalForge's leakage audit enforced
+IS-only calibration and revealed the truth: **−0.99**. The regime weights had been
+leaking out-of-sample data.
+
+| Calibration | OOS Sharpe | Verdict |
+|---|---|---|
+| Naive (full-sample weights) | **+0.85** | what a leaky backtest sells you |
+| IS-only (honest) | **−0.99** | the truth |
+| Gap | **1.84** > 0.80 threshold | → `LEAKAGE_DETECTED` |
+
+**That honest negative number is the product working.** Edge confidence: **12/100**.
+Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
+(see Quickstart) and is the core demo of this submission.
+
+---
+
+## Three-stack integration (sponsor evidence)
+
+| Stack | What we use | Evidence |
+|---|---|---|
+| **① CMC Agent Hub** | Proprietary F&G `/v3/fear-and-greed/historical` (1075 days) + Data MCP (12 tools) + **x402 $0.01/call on Base** | `outputs/cmc_provenance.json` — 3-channel record incl. x402 payment tx |
+| **② BNB AI Agent SDK** | ERC-8004 on-chain identity + APEX (ERC-8183) escrow jobs + IPFS deliverables + UMA OOv3 settlement | `outputs/onchain/registration.json`, `outputs/onchain/client_demo_result.json` |
+| **③ CMC Skills Marketplace** | Listed skill, x402-gated `$0.50 USDC` per adjudication | `GET /.well-known/skill-card.json` |
+| Trust Wallet Agent Kit *(optional)* | Local-signing adapter, `--signer twak` | `examples/twak_demo.py`, `docs/TWAK_GUIDE.md` |
+
+### On-chain evidence table (filled at submission time)
+
+| Item | Network | Link |
+|---|---|---|
+| ERC-8004 registration tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
+| APEX create_job tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
+| APEX fund tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
+| APEX settle (COMPLETED) tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
+| IPFS verdict deliverable | IPFS | `https://gateway.pinata.cloud/ipfs/[FILL]` |
+| x402 CMC payment tx | Base | `https://basescan.org/tx/[FILL]` |
+
+---
+
+## Quickstart (judges: 3 commands, ~2 minutes)
+
+```bash
+git clone https://github.com/0xCaptain888/signalforge && cd signalforge
+pip install -r requirements.txt
+
+# 1. Verify the scoring engine (v1 data must output exactly 12)
+python src/adjudicator/scoring.py
+#    → verify_v1_score: score=12, expected=12, PASS
+
+# 2. Run the adjudication demo (the LEAKAGE_DETECTED highlight)
+python scripts/07_adjudicate_demo.py
+#    → verdict=LEAKAGE_DETECTED, edge_confidence=12, leaked=True
+
+# 3. Full test suite + end-to-end smoke test
+pytest tests/ -m "not onchain"        # ~80 tests
+python scripts/09_e2e_smoke_test.py   # service → adjudicator pipeline
+```
+
+No API keys needed for any of the above — the adjudicator degrades gracefully to
+the committed v1 result set (zero-key reproduction).
+
+### Run the paid service locally
+
+```bash
+cp .env.example .env            # fill in keys (see docs)
+python -m uvicorn service.app:app --port 8000
+
+# x402 gate in action:
+curl -X POST localhost:8000/adjudicate -H 'Content-Type: application/json' \
+  -d '{"asset":"ETH","candidate_signal":{"name":"t","source":"cmc_fear_greed","definition":"fg<20","holding_period_days":5}}'
+#    → HTTP 402 + payment quote (x402, $0.50 USDC on Base)
+```
+
+### Run the demo console
+
+```bash
+cd ui && npm install && npm run dev   # http://localhost:3000
+```
+
+---
+
+## Statistical rigor (what the adjudicator actually checks)
+
+| Check | Method | v1 result |
+|---|---|---|
+| Selection bias | Deflated Sharpe Ratio (López de Prado) | prob = 0.001 → no alpha |
+| Multiple testing | Benjamini–Hochberg FDR, q = 0.10, pooled | 0 factors survive |
+| Out-of-sample robustness | Walk-forward, 7 windows | median Sharpe −2.10 |
+| Overfit signature | Parameter plateau scan | spike (parameter-sensitive) |
+| Look-ahead bias | Tamper-future unit tests | PASS |
+| Data leakage | Naive vs IS-only calibration gap | **1.84 → LEAKAGE_DETECTED** |
+| Local alpha | Regime-conditional IC | CHOP_NEUTRAL: IC −0.30, t = −4.56 |
+
+Edge Confidence is a transparent deterministic function of the above —
+baseline 59, six rules, every point itemized in the verdict's `reasons` array.
+See [`docs/PRODUCT.md`](docs/PRODUCT.md) for the full API contract.
 
 ---
 
 ## Architecture
 
 ```
-config/        runtime settings + project constants (incl. M0 back-fill)
-src/cmc/       CMC API client + endpoints + pydantic schemas
-src/factors/   timeseries + cross-section + regime factors (point-in-time)
-src/research/  IC / Rank-IC / IR / t-stat / IC-decay / FDR / DSR / bootstrap
-src/strategy/  factor→signal→position→backtest with t→t+1 execution
-src/llm/       DeepSeek client + per-factor synth + report writer + hallucination detector
-src/spec/       pydantic StrategySpec schema + deterministic builder + skill_wrapper (§8.2)
-scripts/       00_smoke → 01_pull → 02_factors → 03_research → 04_backtest
-               → 05_spec → 06_report → reproduce → check_no_key_reproduction
-tests/         38 unit tests (look-ahead, survivorship, IC, FDR, DSR, strategy, spec, skill, audit-fixes)
-data/raw/      CMC samples (committed) + cached raw responses (ignored)
-data/processed/ canonical parquet panels (committed; judges reproduce from here)
-outputs/       specs / reports / figures / llm_logs + reproduce_manifest.json
+Callers (any agent)
+   │ CMC Skills find_skill()          │ APEX on-chain jobs
+   ▼                                  ▼
+M-SKILL  FastAPI :8000  ──────  M-BNB  APEX server :8001
+   │  x402 gate $0.50/call         ERC-8004 identity · ERC-8183 escrow
+   ▼                               IPFS deliverable · UMA OOv3 settle
+M-CORE  adjudicator (6-rule scoring · leakage detection · zero recompute)
+   ▼
+M-CMC   ① REST history  ② Data MCP  ③ x402 pay-per-call   → provenance.json
 ```
 
-```
-   CMC F&G (proprietary)      Binance OHLCV (free, fallback)
-            │                              │
-            ▼                              ▼
-    src/factors/timeseries         src/factors/regime (BTC × MA200)
-            │                              │
-            └──────────────┬───────────────┘
-                           ▼
-                  src/research/{ic,regime_attrib,
-                                multiple_testing,robustness}
-                           │
-                           ▼
-             src/strategy/{signals,portfolio,backtest}
-                           │
-                  ┌────────┼────────┐
-                  ▼        ▼        ▼
-            StrategySpec  report   walk-forward
-              (JSON)      (PDF)    OOS figure
-```
+Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
----
-
-## Quickstart
-
-```bash
-cp .env.example .env
-# edit .env, fill in CMC_API_KEY and DEEPSEEK_API_KEY
-# (both are optional for reproduction — judges can leave them empty)
-
-python -m venv .venv && source .venv/bin/activate
-pip install -e .
-
-# go/no-go smoke test (Stage 2 / M0)
-python scripts/00_smoke_test.py
-
-# full historical pull (CMC F&G + map + Binance OHLCV fallback)
-python scripts/01_pull_data.py
-
-# factor build → research → backtest → spec → report
-python scripts/02_build_factors.py
-python scripts/03_run_research.py
-python scripts/04_backtest.py
-python scripts/05_generate_spec.py
-python scripts/06_write_report.py
-
-# one-click reproduction with manifest hash gate (Stage 7 / M5)
-python scripts/reproduce.py
-
-# judge-no-key sanity (clears API env, wipes outputs, reruns, re-verifies)
-python scripts/check_no_key_reproduction.py
-
-# unit tests (28 total)
-pytest tests/ -v
-```
-
----
-
-## Rigor — what makes this quant research, not a toy
-
-1. **Point-in-time factors**, survivorship-bias-free universe scaffolding
-   (`listings/historical` snapshots when the plan allows; otherwise pure
-   time-series with documented degradation).
-2. **Look-ahead bias unit tests** — `tests/test_no_lookahead.py` tampers
-   future values and asserts history is unchanged; rolling windows must
-   return NaN before `min_periods` is met.
-3. **IC / Rank-IC / IR / t-stat + IC decay** at multiple holding periods
-   (`HOLDING_PERIODS = [1, 5, 10, 20, 40]`).
-4. **Regime-layered attribution** — every factor gets a factor × regime IC
-   matrix; the report's heatmap is generated from the same JSON the spec
-   consumes.
-5. **Multiple-testing correction** — Benjamini–Hochberg FDR at q = 0.10,
-   plus López de Prado's **Deflated Sharpe Ratio** for the realised strategy.
-6. **Walk-forward IS/OOS + parameter-plateau + cost-grid sensitivity +
-   Monte-Carlo random-signal baseline.** OOS is never used for parameter
-   selection: `scripts/04_backtest.py::build_weights_is_only` refits
-   regime weights using ONLY dates strictly before the IS/OOS cut, and
-   the same helper drives each walk-forward window. The plateau scan
-   sweeps the rolling-IC window over `[30, 45, 60, 90, 120]` so the
-   reader can see whether the OOS Sharpe sits on a plateau or a spike.
-   `tests/test_audit_fixes.py::test_is_only_calibration_is_leak_free`
-   tampers OOS factor values and asserts the calibrated weights are
-   unchanged — the leak gate is enforced in CI.
-
-Every numeric value in the report and the spec is traceable back to a
-Python computation; the LLM only narrates. A regex-based
-`verify_numbers` hallucination detector reads the draft and flags any
-decimal that does not appear in the source JSON.
-
----
-
-## Outputs
-
-| Artefact | Path | Notes |
-|---|---|---|
-| Machine-readable strategy spec | `outputs/specs/signalforge-cmc-fg-regime-v1.json` | pydantic-valid `StrategySpec`; `is_proprietary: true`; `reproducibility.seed = 42` |
-| Research report (markdown) | `outputs/reports/research_report.md` | 8 chapters; `verify_numbers` clean |
-| Research report (PDF) | `outputs/reports/research_report.pdf` | renders the markdown with the 3 figures inline |
-| Figure — IC decay | `outputs/figures/ic_decay.png` | per-factor IC vs holding period |
-| Figure — regime × factor IC heatmap | `outputs/figures/regime_ic_heatmap.png` | the core empirical finding |
-| Figure — walk-forward OOS equity | `outputs/figures/walkforward_oos.png` | strategy vs BTC HODL |
-| Reproduce manifest | `outputs/reproduce_manifest.json` | canonical SHA-256 of every numeric output |
-| Audit logs | `outputs/llm_logs/` | every DeepSeek prompt/response/failure |
-| One-click reproduction | `python scripts/reproduce.py` | seed = 42; manifest hash gate |
-
----
-
-## CMC data usage (special-prize narrative)
-
-Core alpha source: **CMC PROPRIETARY Fear & Greed**
-(`/v3/fear-and-greed/historical`) — a CoinMarketCap-internal index that
-ingests their own volatility / momentum / volume / dominance / social
-features into a single 0–100 daily score. This index does **not** exist
-on Alternative.me; the proprietary methodology is the entire reason the
-strategy has an edge.
-
-Supporting CMC endpoints used:
-
-| Endpoint | Used for | Status on the supplied key (Basic) |
-|---|---|---|
-| `/v1/key/info` | bookkeeping (0 credit) | ✅ |
-| `/v1/cryptocurrency/map` | universe scaffolding (0 credit) | ✅ |
-| `/v3/fear-and-greed/historical` | **core alpha** | ✅ |
-| `/v1/global-metrics/quotes/latest` | dominance / total-cap snapshot | ✅ |
-| `/v1/cryptocurrency/listings/historical` | point-in-time universe | ❌ 403 (plan gate) — degraded to pure time-series mode |
-| `/v2/cryptocurrency/ohlcv/historical` | daily candles | ❌ 403 (plan gate) — fallback: Binance public klines |
-| `/v1/global-metrics/quotes/historical` | dominance history | ❌ 403 (plan gate) — degraded to latest snapshot only |
-
-Binance prices are infrastructure for forward-return / regime calculations
-only and are honestly disclosed in §2 of the research report. The unique
-alpha source remains the CMC proprietary F&G — **the strategy does not
-exist without it.**
-
----
-
-## Current results snapshot (2026-06-08 reproduce pass, post-audit)
+## Repository layout
 
 ```
-research   -> 0399ee061c83aedb…   (manifest hash, masks created_at)
-backtest   -> 3e76e9ee49f65498…
-spec       -> 21e6270e9eb6d4f6…   (refreshed by the third-pass audit:
-                                   research_results.json now exposes the
-                                   spec-canonical `mean_ic` key and counts
-                                   `n_trials` per dev-doc §5.5 line 1185)
+src/adjudicator/   verdict engine (schema · scoring · leakage · core)
+src/cmc/           REST / MCP / x402 clients + provenance recorder
+src/bnb/           ERC-8004 registration + APEX adjudication server
+src/twt/           Trust Wallet Agent Kit signing adapter
+service/           FastAPI skill + x402 middleware + SKILL.md
+examples/          APEX 8-step client demo · TWAK demo
+ui/                React demo console (gauge · Sharpe bars · evidence panel)
+tests/             ~80 tests across 7 modules
+scripts/           demo · x402 proof · e2e smoke · env check
+outputs/specs/     backtestable StrategySpec (Track 2 deliverable)
+docs/              architecture · product · changelog · demo script · judge checklist
 ```
 
-| Metric | Value |
-|---|---|
-| F&G sample | 1075 daily obs, 2023-06-29 → 2026-06-07 |
-| Universe (OHLCV)         | 18 BTC/ETH/L1 coins, Binance fallback |
-| Regime buckets populated | 8 of 9 (only `CHOP_BEAR` empty) |
-| Regime-weight calibration | **`build_weights_is_only` — no OOS leak** |
-| Pooled FDR-significant factors | 0 — alpha is regime-conditional |
-| Strongest regime-conditional bucket | `fg_level` in `CHOP_NEUTRAL`: IC = −0.30, t-stat = −4.56, p ≈ 9 × 10⁻⁶ |
-| OOS Sharpe (IS-only fit) | **−0.99** |
-| Deflated Sharpe probability | 0.001 |
-| Monte-Carlo random-signal 95th-pct Sharpe | 1.00 |
-| OOS max drawdown | −6.0% |
-| Walk-forward windows (train 365 / test 90 / step 90) | 7 windows; Sharpe range −2.71 .. 0.81, median −2.10 |
-| Parameter-plateau (rolling-IC window) | window=30 → 0.51, 45 → −1.63, 60 → −1.26, 90 → −0.74, 120 → −0.50 — **no plateau, single spike** |
-| Unit tests | 38 / 38 ✓ |
+## For judges
 
-**Honest read (post-audit).** Closing the OOS leak in regime-weight
-calibration flipped the OOS Sharpe from +0.85 (leaky) to −0.99 (clean).
-The walk-forward median Sharpe is also negative, and the plateau scan
-shows wide swings rather than a flat shoulder. Both findings are the
-textbook signature of a regime-conditional alpha that does NOT survive
-strict IS-only calibration on the supplied Basic-plan universe. The
-infrastructure (factor IC, FDR, DSR, walk-forward, plateau) does its
-job — it is now reporting negative-result honesty rather than a leak.
-The CMC proprietary F&G is empirically interesting (CHOP_NEUTRAL t-stat
-−4.56) but the as-built spec needs a richer universe or a
-regime-stratified FDR gate before it earns a positive OOS — see the
-"Next iteration" notes at the bottom of the research report.
+Everything claimed above is verifiable in ~5 minutes:
+[`docs/JUDGE_CHECKLIST.md`](docs/JUDGE_CHECKLIST.md)
 
----
-
-## Stage status
-
-| Stage | Status |
-|---|---|
-| 0 — Repo init                  | ✅ done |
-| 1 — Scaffold                   | ✅ done |
-| 2 — M0 Data layer smoke        | ✅ done — 7-endpoint smoke + M0 back-fill + Binance OHLCV fallback |
-| 3 — M1 Factor layer            | ✅ done — 5/5 bias unit tests green |
-| 4 — M2 Research layer          | ✅ done — IC / IR / FDR / regime / DSR + 14/14 tests green |
-| 5 — M3 Strategy layer          | ✅ done — t→t+1 backtest + cost grid + MC + 23/23 tests; ✅ audit-fix: IS-only weights + walk-forward + plateau wired in |
-| 6 — M4 LLM + Spec              | ✅ done — DeepSeek synth + report + StrategySpec + 28/28 tests |
-| 7 — M5 Reproducibility         | ✅ done — manifest hash gate + no-key sanity script |
-| 8 — M6 Submission              | 🚧 in progress (8.1 README ✅, 8.2 Skills wrapper ✅, audit-fix ✅, 8.3 video / 8.5 checklist pending) |
-| 9 — M7 Optional add-ons        | ⏳ pending |
-
-See [development schedule](./docs/SignalForge-开发周期表.md) for the full
-plan and [build doc](./docs/SignalForge-可执行开发文档.md) for the section
-references quoted throughout the code.
-
----
-
-## Appendix A — M0 findings (Stage 2.5, 2026-06-08)
-
-Smoke test executed against the supplied CMC key on the **free Basic plan**
-(15 000 credits / month, 50 req / min). Endpoint matrix already shown in the
-"CMC data usage" section above. Outcome: the proprietary F&G alpha source
-is fully usable; OHLCV degrades to Binance public klines; historical
-listings and historical global metrics are skipped with documented
-degradation.
-
-Stage 2 artefacts (committed):
-
-| Artefact | Rows / Notes |
-|---|---|
-| `data/processed/fear_greed.parquet` | 1075 rows, 2023-06-29 → 2026-06-07 |
-| `data/processed/crypto_map.parquet` | 5000 coins |
-| `data/processed/ohlcv.parquet` | 18962 rows, 18 coins (Binance fallback) |
-| `data/processed/global_metrics_latest.parquet` | 1 snapshot row (historical 403) |
-| `data/raw/_samples/key_info.json` | endpoint [A] real response — plan / credits |
-| `data/raw/_samples/crypto_map.json` | endpoint [B] real response — id/symbol/dates |
-| `data/raw/_samples/fear_greed_historical.json` | endpoint [E] real response — the alpha source |
-| `data/raw/_samples/global_metrics_latest.json` | endpoint [G] real response — dominance snapshot |
-| `data/raw/_samples/listings_historical.json` | endpoint [C] placeholder — 403 envelope, dev-doc ref, action taken |
-| `data/raw/_samples/ohlcv_historical.json` | endpoint [D] placeholder — 403 envelope, points to Binance fallback |
-| `data/raw/_samples/global_metrics_historical.json` | endpoint [F] placeholder — 403 envelope, points to latest-only degrade |
-
-Total CMC credits burned on the full pull: **2** (cache hits cost zero
-on rerun).
-
----
-
-## Appendix B — Per-stage module reference
-
-### Stage 3 — M1 Factor layer
-
-| File | Factors |
-|---|---|
-| `src/factors/timeseries.py`    | `fg_level`, `fg_zscore_90`, `fg_momentum_7`, `fg_extreme_rev`, `fg_regime_dur`, `dom_trend_30`, `dom_zscore_90`, `mktcap_mom_30`, `fg_cross_dom` |
-| `src/factors/cross_section.py` | `xs_rank_mom_30`, `xs_size`, `xs_ret_mom_90`, `xs_vol_60` (within-day pct-rank, centred) |
-| `src/factors/regime.py`        | `dir_regime` × `sent_regime` (BULL/BEAR/CHOP × FEAR/NEUTRAL/GREED) |
-
-### Stage 4 — M2 Research layer
-
-| File | What it provides |
-|---|---|
-| `src/research/ic.py`               | `forward_returns`, `timeseries_ic`, `rolling_ic_series`, `ir_and_tstat`, `cross_section_ic`, `ic_decay` |
-| `src/research/regime_attrib.py`    | `regime_layered_ic`, `regime_ic_matrix` |
-| `src/research/multiple_testing.py` | `bh_fdr` (Benjamini–Hochberg), `deflated_sharpe` (López de Prado) |
-| `src/research/robustness.py`       | `time_split`, `walk_forward_windows`, `parameter_plateau`, `cost_sensitivity`, `stationary_block_bootstrap` |
-
-### Stage 5 — M3 Strategy layer
-
-| File | What it provides |
-|---|---|
-| `src/strategy/signals.py`   | `factor_to_signal` (tanh squash, NaN-safe), `combine_signals` (L1-normalised) |
-| `src/strategy/portfolio.py` | `regime_conditional_positions`, `cross_section_positions`, `default_regime_weights` |
-| `src/strategy/backtest.py`  | `backtest_single`, `backtest_panel` (both apply strict t → t+1), `_perf`, `monte_carlo_random` |
-| `scripts/04_backtest.py`    | **IS-only** `build_weights_is_only` + walk-forward refit + parameter plateau scan + cost grid + Monte-Carlo + DSR. Writes `backtest_results.json` with `regime_weights_source`, `walk_forward`, and `parameter_plateau` blocks for audit. |
-
-### Stage 6 — M4 LLM + Spec layer
-
-| File | What it provides |
-|---|---|
-| `src/llm/deepseek_client.py`    | OpenAI-compatible client, `chat` / `reason`, `safe_chat` / `safe_reason`, audit logs |
-| `src/llm/research_synth.py`     | per-factor rationale with deterministic fallback when LLM unavailable |
-| `src/llm/report_writer.py`      | full markdown report + 8-section template fallback + `verify_numbers` |
-| `src/spec/schema.py`            | pydantic `StrategySpec` / `FactorSpec` / `DataSource` contract |
-| `src/spec/builder.py`           | deterministic spec assembly; only FDR-significant factors are included |
-
-### Stage 7 — M5 Reproducibility
-
-| Script | What it proves |
-|---|---|
-| `scripts/reproduce.py` | Runs `02 → 03 → 04 → 05 → 06` with `PYTHONHASHSEED=42`; canonicalises each numeric output (volatile keys masked) and SHA-256s against `outputs/reproduce_manifest.json`. |
-| `scripts/check_no_key_reproduction.py` | Snapshots `outputs/`, wipes the volatile JSONs, re-invokes `reproduce.py` with empty `CMC_API_KEY` and `DEEPSEEK_API_KEY`. Confirms judges can rebuild every number from `data/processed/` alone. |
-
-To intentionally adopt new numbers (e.g. after editing a factor), delete
-`outputs/reproduce_manifest.json` and the next run will rewrite it.
-
-### Stage 8 — M6 Submission
-
-| File | What it provides |
-|---|---|
-| `src/spec/skill_wrapper.py` | §8.2 Skills-Marketplace wrapper. `run_skill(asset, risk)` reuses the cached, manifest-verified `StrategySpec`, drops cross-section factors when a single asset is requested, resizes `signal_to_position` + slippage per risk preference, and optionally attaches a live CMC F&G + global-metrics snapshot under `runtime_inputs`. Never re-runs the research / backtest pipeline at call time. CLI: `python -m src.spec.skill_wrapper --asset ETH --risk aggressive`. |
-| `tests/test_skill_wrapper.py` | 7 unit tests covering risk validation, single-asset factor filtering, panel-mode passthrough, risk-profile sizing math, no-key snapshot fallback, missing-cache error, and `spec_id` request-context tagging. |
-| `tests/test_audit_fixes.py` | 3 audit-pass tests: IS-only weight calibration is leak-free (tampers OOS factor values, asserts weights unchanged), walk-forward record shape, and `PRICE_SOURCE_FALLBACK` constant is wired to Binance per the Stage 2.9 decision. |
-
-The skill is the surface other agents (and the optional x402 pay-per-call
-shim) call. Factor selection and IC numbers are **never** mutated by the
-caller's risk preference — that would be data-mining per request. Only
-the position-sizing + execution-assumption blocks are resized.
-
-### Stage 2-7 audit pass (2026-06-08)
-
-A strict line-by-line audit against the dev doc (§2 → §7) caught two
-**major** and three **minor** gaps. All five are now closed in commit
-[`ca57cf1`]:
-
-| Severity | What was wrong | Fix |
-|---|---|---|
-| major | `scripts/04_backtest.py` calibrated `regime_weights` on **full-sample** research (OOS leak vs dev-doc §8.5 / §9 trap). | New `build_weights_is_only` recomputes regime IC on dates strictly before the IS/OOS cut. Tampered-OOS leak test enforces it. |
-| major | `walk_forward_windows` was defined in `src/research/robustness.py` but **never invoked**. README rigor claim was unbacked. | `scripts/04_backtest.py::run_walk_forward` now refits weights per window and persists records to `backtest_results.json::walk_forward`. |
-| major | `parameter_plateau` was defined but **never invoked**. | Plateau scan over rolling-IC window `[30, 45, 60, 90, 120]` now runs and persists to `backtest_results.json::parameter_plateau`. |
-| minor | `PRICE_SOURCE_FALLBACK = None` was dead code. | Set to `"binance"` to reflect the Stage 2.9 decision; locked by `test_price_source_fallback_documented`. |
-| minor | `stationary_block_bootstrap` is defined but unused (dev-doc §5.4 lists it as available capability, not required). | Left in place as a deliberate capability with docstring; not invoked. |
-
-Reproducibility cost: the new IS-only calibration intentionally produced
-new canonical numbers (`backtest`, `spec` hashes updated). The new
-`outputs/reproduce_manifest.json` was generated by `scripts/reproduce.py`
-and re-verified end-to-end (`✓ reproduction PASSED`).
-
-### Stage 2-7 second audit pass (2026-06-08, this commit)
-
-After the first audit closed the OOS-leak, a second sweep against the
-dev-doc §3 → §7 file-by-file catalogue caught four **minor but visible**
-gaps that the first pass left open. All four are now closed:
-
-| Severity | Gap (dev-doc reference) | Fix in this commit |
-|---|---|---|
-| minor | `outputs/llm_logs/` was referenced as a committed audit-trail target in §7.1 / §8.5 but the directory did not exist in fresh clones (the `*.json` payloads are git-ignored, and git does not track empty dirs). | Added `outputs/llm_logs/.gitkeep` so the directory exists, plus an `outputs/llm_logs/README.md` describing the audit-log filename convention and exhaustively listing the dev-doc citations that motivate it. `.gitignore` was updated so both files survive while the `*.json` payloads continue to be ignored. |
-| minor | `config/constants.py::OHLCV_EARLIEST` was still `None`, which §3.9 calls out as "no `UNKNOWN`/`None` left after M0 back-fill". | Kept `OHLCV_EARLIEST = None` to honestly record that **CMC's** ohlcv/historical was 403, but added two new constants — `OHLCV_EARLIEST_VIA_FALLBACK = "2023-06-29"` and `OHLCV_LATEST_VIA_FALLBACK = "2026-06-07"` plus `OHLCV_FALLBACK_PROVIDER = "binance"` — so downstream code (and the spec) never has to re-read the parquet to know the actual data window. |
-| minor | `data/raw/_samples/` only held 4 of the 7 dev-doc endpoint samples. §3.3 / §3.9 require evidence-trail samples for **all** seven, even the plan-gated 403s. | Added the missing three placeholders — `listings_historical.json`, `ohlcv_historical.json`, `global_metrics_historical.json` — each carrying the observed 403 envelope, the dev-doc reference, the action that was taken (skip / fallback / degrade), and the upgrade path that would auto-overwrite the placeholder with a real response. |
-| minor | `src/spec/builder.py::data_sources` listed the plan-gated endpoints but did **not** mark them as gated, and never declared the Binance fallback as a first-class source. Judges reading the spec alone would conclude the spec was assembled from data it cannot actually access on the supplied key. | Spec now carries per-endpoint plan-availability status in the `note` field (AVAILABLE / 403 with the documented mitigation) and adds a 7th `DataSource` for `Binance /api/v3/klines` so the fallback path is captured in the spec contract. Spec hash refreshed to `5cfa613c…`; `outputs/reproduce_manifest.json` regenerated and re-verified (`✓ reproduction PASSED`); all 38 unit tests stay green. |
-
-The README's "Outputs" table still points at the same paths; only the
-contents of `outputs/specs/signalforge-cmc-fg-regime-v1.json` and
-`outputs/reproduce_manifest.json` were rewritten by this pass.
-
-### Stage 2-7 third audit pass (2026-06-08, this commit)
-
-A third sweep — field-by-field this time, against dev-doc §5.5 lines
-1162–1190 — caught three remaining schema divergences in
-`outputs/research_results.json`. All three are now closed:
-
-| Severity | Gap (dev-doc reference) | Fix in this commit |
-|---|---|---|
-| high | `scripts/03_run_research.py` wrote `mean_ic_rolling` while dev-doc §5.5 line 1179 names the field `mean_ic`. Any external consumer that bookmarks the spec's field names would `KeyError` on the canonical key. | The field is now emitted as **`mean_ic`** (the spec-canonical name). The previous `mean_ic_rolling` alias is kept alongside it for one release so any local tooling that bookmarked the prior name keeps working; future cleanups may drop the alias. |
-| medium | `results["n_trials"]` counted `1 + non_NaN(regime_rows)` while dev-doc §5.5 line 1185 specifies `1 + len(lay)`. This made the Deflated-Sharpe selection-correction less conservative than the spec intended. | Counting realigned to the doc: `1 + len(lay)`. Empty-bucket trials are now counted as attempted, which is the stricter / more honest DSR denominator. New canonical hash for `research_results.json` follows. |
-| low | `results["horizon_primary"] = 5` was emitted without any documentation; the spec contract is silent on this key. | Kept the field (every IC number in `factors[*]` is computed at this horizon, so it is useful metadata) and added an inline docstring above the assignment declaring it as an **additive convenience field**, not a contract break. |
-
-Reproducibility cost: the schema change cascaded through `n_trials` →
-`deflated_sharpe` → `spec.reported_performance`, so all three manifest
-hashes were intentionally rewritten (`research 0399ee06…`,
-`backtest 3e76e9ee…`, `spec 21e6270e…`). The new
-`outputs/reproduce_manifest.json` was generated by `scripts/reproduce.py`
-and re-verified end-to-end (`✓ reproduction PASSED`). All 38 unit tests
-stay green; no test had assertions on the previous (non-canonical) field
-names.
-
----
+> **APEX settlement note:** settlement requires a 30-minute UMA OOv3 liveness
+> (no-dispute) window. The submission shows a pre-settled job; a fresh one can be
+> triggered any time with `python examples/client_demo.py`.
 
 ## License
 
-Apache-2.0 (TBD)
+Apache-2.0

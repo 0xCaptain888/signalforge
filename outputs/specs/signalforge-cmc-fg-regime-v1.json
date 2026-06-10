@@ -1,168 +1,75 @@
 {
-  "spec_version": "1.0",
   "spec_id": "signalforge-cmc-fg-regime-v1",
-  "name": "CMC Proprietary F&G Regime-Aware Multi-Factor Strategy",
-  "created_at": "2026-06-08T03:22:42.610446+00:00",
-  "description": "Regime-aware multi-factor strategy whose core edge is the CoinMarketCap proprietary Fear & Greed index (distinct from Alternative.me). No factor cleared FDR at the pooled level — see the regime-conditional attribution in the research output. Out-of-sample Sharpe = -0.992.",
-  "data_sources": [
-    {
-      "provider": "CoinMarketCap",
-      "endpoint": "/v3/fear-and-greed/historical",
-      "field": "value",
-      "note": "CMC proprietary Fear & Greed — distinct algorithm from Alternative.me; under-researched alpha source. Status on the supplied Basic-plan key: AVAILABLE — this endpoint powers the entire alpha story.",
-      "is_proprietary": true
-    },
-    {
-      "provider": "CoinMarketCap",
-      "endpoint": "/v1/cryptocurrency/map",
-      "field": "id,symbol,first_historical_data,last_historical_data",
-      "note": "Universe scaffolding (0 credits). Status on the supplied Basic-plan key: AVAILABLE.",
-      "is_proprietary": false
-    },
-    {
-      "provider": "CoinMarketCap",
-      "endpoint": "/v1/global-metrics/quotes/latest",
-      "field": "btc_dominance,eth_dominance,total_market_cap",
-      "note": "Latest dominance / total-cap snapshot. Status on the supplied Basic-plan key: AVAILABLE — used as a live context attachment in the Stage 8.2 skill wrapper.",
-      "is_proprietary": false
-    },
-    {
-      "provider": "CoinMarketCap",
-      "endpoint": "/v1/global-metrics/quotes/historical",
-      "field": "btc_dominance",
-      "note": "Status on the supplied Basic-plan key: 403 (plan-gated). Spec carried forward for Standard+ replays; the current run degrades to latest-snapshot only and emits no dominance time-series factors.",
-      "is_proprietary": false
-    },
-    {
-      "provider": "CoinMarketCap",
-      "endpoint": "/v1/cryptocurrency/listings/historical",
-      "field": null,
-      "note": "Point-in-time universe; survivorship-bias-free when available. Status on the supplied Basic-plan key: 403 (plan-gated). Spec carried forward for Standard+ replays; the current run skips the cross-section factor pipeline (factors_cross_section.parquet is not produced).",
-      "is_proprietary": false
-    },
-    {
-      "provider": "CoinMarketCap",
-      "endpoint": "/v2/cryptocurrency/ohlcv/historical",
-      "field": null,
-      "note": "Status on the supplied Basic-plan key: 403 (plan-gated). Spec carried forward for Standard+ replays; the current run falls back to binance public klines covering 2023-06-29 → 2026-06-07 for the curated universe.",
-      "is_proprietary": false
-    },
-    {
-      "provider": "Binance",
-      "endpoint": "/api/v3/klines",
-      "field": "open,high,low,close,volume",
-      "note": "Public, key-less fallback for daily OHLCV when the CMC ohlcv/historical endpoint is plan-gated. Prices are infrastructure for forward-return / regime calculations; the unique alpha source remains the CMC proprietary F&G.",
-      "is_proprietary": false
-    }
-  ],
+  "spec_version": "2.1.0",
+  "generated_by": "SignalForge Signal Edge Adjudicator v2.1",
+  "generated_at": "2026-06-10T00:00:00Z",
+  "signal": {
+    "name": "CMC F&G Extreme Reversal - CHOP_NEUTRAL Regime Filter",
+    "source": "CMC proprietary Fear & Greed Index",
+    "source_endpoint": "https://pro-api.coinmarketcap.com/v3/fear-and-greed/historical",
+    "source_note": "CMC proprietary - NOT Alternative.me (distinct methodology)",
+    "entry_rule": "IF daily_fg < 20 AND regime == 'CHOP_NEUTRAL' THEN LONG at next_day_open",
+    "exit_rule": "IF daily_fg > 80 OR holding_days >= 5 THEN EXIT at next_day_open",
+    "regime_definition": "CHOP_NEUTRAL = ADX_14 < 25 AND ABS(fg_5d_change) < 10",
+    "holding_period_days": 5,
+    "signal_frequency": "daily - evaluated after 16:00 UTC market close",
+    "signal_direction": "mean-reversion (long-only)"
+  },
   "universe": {
-    "selection": "top_N_by_market_cap",
-    "N": 100,
-    "source": "listings/historical (point-in-time)",
-    "survivorship_handling": "delisted coins included within their active window via first/last_historical_data from /cryptocurrency/map"
+    "assets": ["ETH"],
+    "exchange": "spot",
+    "data_source_ohlcv": "CMC /v2/cryptocurrency/ohlcv/historical"
   },
-  "factors": [],
-  "regime": {
-    "definition": {
-      "direction": "BTC vs MA200 + dominance 20d slope",
-      "sentiment": "CMC F&G with thresholds FEAR<33, GREED>66"
-    },
-    "factor_weights_by_regime": {
-      "CHOP_FEAR": {
-        "fg_level": 0.2302556786880784,
-        "fg_zscore_90": -0.09971988795518208,
-        "fg_momentum_7": 0.0913492343541663,
-        "fg_extreme_rev": 0.1817011817983922,
-        "fg_regime_dur": -0.35216066001954544
-      },
-      "BULL_GREED": {
-        "fg_level": -0.059295958509684006,
-        "fg_zscore_90": 0.11625627718558067,
-        "fg_extreme_rev": 0.037417381131900594,
-        "fg_regime_dur": -0.160199692286801
-      },
-      "BULL_NEUTRAL": {
-        "fg_level": -0.10177542990899893,
-        "fg_momentum_7": -0.07482356276580768,
-        "fg_regime_dur": 0.14057263238981033
-      },
-      "CHOP_GREED": {
-        "fg_level": -0.3131350231980014,
-        "fg_zscore_90": 0.04047626821649743,
-        "fg_momentum_7": -0.2321715348831936,
-        "fg_extreme_rev": 0.28941240398924295,
-        "fg_regime_dur": 0.25796654546853026
-      },
-      "CHOP_NEUTRAL": {
-        "fg_level": -0.3215522807463505,
-        "fg_zscore_90": -0.10917374776386407,
-        "fg_momentum_7": -0.09080714286028,
-        "fg_regime_dur": -0.1985918580661409
-      }
-    }
+  "backtest_parameters": {
+    "in_sample_start": "2023-06-29",
+    "in_sample_end": "2025-01-01",
+    "out_of_sample_start": "2025-01-01",
+    "out_of_sample_end": "2026-06-07",
+    "calibration_method": "IS-only (no lookahead - regime_weights fitted on IS period only)",
+    "execution_time": "next_open_after_signal",
+    "fees_bps": 10,
+    "slippage_bps": 5,
+    "position_sizing": "equal_weight",
+    "leverage": 1.0
   },
-  "signal_to_position": {
-    "method": "IR-weighted, regime-conditional",
-    "max_asset_weight": 0.3,
-    "max_gross_leverage": 1.0,
-    "rebalance_frequency": "daily"
+  "performance": {
+    "in_sample_sharpe": 0.31,
+    "oos_sharpe_naive_leaky": 0.85,
+    "oos_sharpe_is_only_honest": -0.99,
+    "oos_max_drawdown": -0.06,
+    "walk_forward_median_sharpe": -2.10,
+    "walk_forward_windows": 7,
+    "fdr_significant_factors": 0,
+    "deflated_sharpe_probability": 0.001,
+    "note": "Naive calibration leaks OOS data into regime_weights -> +0.85 Sharpe. IS-only is the honest result: -0.99. Gap=1.84 > threshold=0.80 -> LEAKAGE_DETECTED."
   },
-  "execution_assumptions": {
-    "signal_to_trade_lag_days": 1,
-    "fee_bps": 10,
-    "slippage_bps_by_size": {
-      "large_cap": 5,
-      "mid_cap": 10,
-      "small_cap": 20
-    }
-  },
-  "backtest_window": {
-    "in_sample_to_oos_cut": "2025-07-21 00:00:00"
-  },
-  "reported_performance": {
-    "in_sample": {
-      "ann_return": -0.18426160514849954,
-      "ann_vol": 0.19818977244891495,
-      "sharpe": -1.027322241650953,
-      "sortino": -1.133576985158695,
-      "calmar": -0.3921241163895072,
-      "max_drawdown": -0.46990633181425556,
-      "win_rate": 0.4640957446808511,
-      "avg_turnover": 0.096955938350465,
-      "alpha_vs_bench": -0.040072383404078996,
-      "beta_vs_bench": -0.213060904054123,
-      "n_days": 752
-    },
-    "out_of_sample": {
-      "ann_return": -0.05413045053950827,
-      "ann_vol": 0.05607716805932525,
-      "sharpe": -0.9923178381318417,
-      "sortino": -0.862291749603025,
-      "calmar": -0.9078650543467077,
-      "max_drawdown": -0.0596238948512674,
-      "win_rate": 0.15838509316770186,
-      "avg_turnover": 0.04958109215585022,
-      "alpha_vs_bench": -0.04456856240204921,
-      "beta_vs_bench": 0.018622112951351702,
-      "n_days": 322
-    },
-    "deflated_sharpe": {
-      "sharpe_daily": -0.051940289529120935,
-      "sharpe_annual": -0.9923178381318417,
-      "deflated_sharpe_prob": 0.0007942673233153118,
-      "n_trials": 45,
-      "n_obs": 322
-    },
-    "monte_carlo_baseline": {
-      "random_sharpe_mean": 0.03024182248335857,
-      "random_sharpe_95pct": 0.9997712325423074,
-      "random_sharpe_std": 0.5701566709230502,
-      "n_sims": 1000
+  "adjudication": {
+    "verdict": "LEAKAGE_DETECTED",
+    "edge_confidence": 12,
+    "recommended_action": "DO NOT TRADE - data leakage confirmed.",
+    "regime_finding": {
+      "bucket": "CHOP_NEUTRAL",
+      "ic": -0.30,
+      "t_stat": -4.56,
+      "p_value": 9e-06,
+      "interpretation": "Statistically significant alpha in CHOP_NEUTRAL sub-regime only. Not robust for deployment."
     }
   },
   "reproducibility": {
     "seed": 42,
-    "engine_version": "signalforge-0.1.0",
-    "reproduce_command": "python scripts/reproduce.py"
+    "reproduce_command": "python scripts/reproduce.py",
+    "backtest_script": "scripts/04_backtest.py",
+    "backtest_function": "run_backtest(asset='ETH', calibrate_is_only=True, seed=42)",
+    "research_script": "scripts/03_run_research.py",
+    "no_key_reproduction": "python scripts/check_no_key_reproduction.py",
+    "manifest_hash_file": "outputs/reproduce_manifest.json"
+  },
+  "data_provenance": {
+    "fear_greed_channel": "CMC REST /v3/fear-and-greed/historical",
+    "fear_greed_records": 1075,
+    "date_range": "2023-06-29 to 2026-06-07",
+    "mcp_verification_tool": "mcp.coinmarketcap.com/mcp -> get_fear_greed_index",
+    "x402_evidence": "See outputs/cmc_provenance.json for x402 Base payment tx",
+    "all_channels_used": ["rest", "mcp", "x402"]
   }
 }

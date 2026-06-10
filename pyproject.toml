@@ -1,31 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "signalforge"
-version = "0.1.0"
-description = "CMC proprietary-indicator factor research engine"
-requires-python = ">=3.11"
+version = "2.1.0"
+description = "Signal Edge Adjudicator — validates trading signals for real alpha vs overfit/leakage"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "0xCaptain888" }]
+keywords = ["trading", "quant", "CMC", "BNB", "signal-validation", "hackathon"]
+
 dependencies = [
-    "httpx>=0.27",
-    "pandas>=2.2",
-    "numpy>=1.26",
-    "pyarrow>=16.0",
-    "scipy>=1.13",
-    "statsmodels>=0.14",
-    "pydantic>=2.7",
-    "pydantic-settings>=2.3",
-    "matplotlib>=3.9",
-    "plotly>=5.22",
-    "openai>=1.30",
+    "pydantic>=2.0",
+    "requests>=2.28",
     "python-dotenv>=1.0",
-    "tenacity>=8.3",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.2", "ruff>=0.4"]
+skill = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "httpx>=0.26",
+    "eth-account>=0.10",
+    "web3>=6.0",
+    "starlette>=0.36",
+]
+quant = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "statsmodels>=0.14",
+    "pyarrow>=12.0",
+]
+bnb = [
+    "bnbagent[server,ipfs]>=0.1.1",
+    "eth-account>=0.10",
+    "web3>=6.0",
+]
+dev = [
+    "pytest>=7.4",
+    "pytest-mock>=3.12",
+    "httpx>=0.26",
+]
+all = ["signalforge[skill,quant,bnb,dev]"]
 
-[build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+[tool.hatch.build.targets.wheel]
+packages = ["src", "service"]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["src*", "config*"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "onchain: requires BSC Testnet connection (deselect with -m 'not onchain')",
+]
+addopts = "-v -m 'not onchain'"

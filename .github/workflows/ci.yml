@@ -1,0 +1,41 @@
+name: SignalForge CI
+
+on:
+  push:
+    branches: [main, v2]
+  pull_request:
+    branches: [main, v2]
+
+jobs:
+  tests:
+    name: "Tests + Smoke"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt --quiet
+          pip install pytest pytest-mock --quiet
+
+      - name: Verify scoring (v1 data must score exactly 12)
+        run: python src/adjudicator/scoring.py
+
+      - name: Run all tests
+        env:
+          X402_DEMO_MODE: "true"
+        run: pytest tests/ -m "not onchain" -v --tb=short
+
+      - name: Run adjudicate demo
+        run: python scripts/07_adjudicate_demo.py
+
+      - name: Run e2e smoke test
+        env:
+          X402_DEMO_MODE: "true"
+        run: python scripts/09_e2e_smoke_test.py
