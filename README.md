@@ -195,6 +195,11 @@ For a seamless evaluation, we recommend verifying the following 4 pillars:
    `python scripts/07_adjudicate_demo.py`
 3. **⛓️ On-Chain Integration Proof**: Verify the ERC-8004 identity registration and APEX Job #141 creation on BSC Testnet via the links in the "On-chain evidence table" above.
 4. **🛡️ Trust Wallet Agent Kit (TWAK) Readiness**: The local-signing adapter (`src/twt/signer.py`) is fully implemented. Run `python examples/twak_demo.py --signer twak` to see the architecture in action. *(Note: As documented in `docs/TWAK_GUIDE.md`, the public TWAK API currently returns placeholder simulations. The codebase is fully prepared to wire real credentials for the final prize demo, ensuring "keys stay local, agent signs autonomously".)*
+5. **🎨 Frontend UI Demo (Optional Visual)**: A polished React dashboard is included to visualize the adjudication results (Confidence Gauge, Sharpe Comparison Bars, and Evidence Panels).  
+   ```bash
+   cd ui && cp .env.example .env && npm install && npm run dev
+   # Open http://localhost:3000 in your browser. It is pre-configured to connect to the live Render backend.
+   ```
 
 ---
 
