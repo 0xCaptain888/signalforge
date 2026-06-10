@@ -182,16 +182,17 @@ Full receipt with payment envelope and balance verification:
 git clone https://github.com/0xCaptain888/signalforge && cd signalforge
 pip install -r requirements.txt
 
-# 1. Verify the scoring engine (v1 data must output exactly 12)
+# 1. Verify the scoring engine (v1 data baseline must output exactly 12)
 python src/adjudicator/scoring.py
 #    → verify_v1_score: score=12, expected=12, PASS
 
 # 2. Run the adjudication demo (the LEAKAGE_DETECTED highlight)
 python scripts/07_adjudicate_demo.py
-#    → verdict=LEAKAGE_DETECTED, edge_confidence=12, leaked=True
+#    → verdict=LEAKAGE_DETECTED, edge_confidence=47, leaked=True
+#    (Note: 47 is the live pipeline value reading real v1 research JSON, not the demo fallback 12)
 
 # 3. Full test suite + end-to-end smoke test
-pytest tests/ -m "not onchain"        # ~80 tests
+pytest tests/ -m "not onchain"        # 119 tests passed
 python scripts/09_e2e_smoke_test.py   # service → adjudicator pipeline
 ```
 
