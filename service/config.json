@@ -1,0 +1,24 @@
+{
+  "name": "signalforge-adjudicator",
+  "version": "2.1.0",
+  "description": "Signal Edge Adjudicator - validates trading signals for real alpha vs overfit/leakage",
+  "transport": "http",
+  "command": "python",
+  "args": ["-m", "uvicorn", "service.app:app", "--host", "0.0.0.0", "--port", "8000"],
+  "env": {
+    "CMC_API_KEY": "${CMC_API_KEY}",
+    "X402_PRIVATE_KEY": "${X402_PRIVATE_KEY}",
+    "X402_PAYEE_ADDRESS": "${X402_PAYEE_ADDRESS}",
+    "SKILL_PUBLIC_URL": "${SKILL_PUBLIC_URL}"
+  },
+  "endpoints": {
+    "adjudicate": "POST /adjudicate",
+    "generate_spec": "POST /generate_spec",
+    "skill_card": "GET /.well-known/skill-card.json",
+    "health": "GET /health",
+    "status": "GET /status"
+  },
+  "payment": { "protocol": "x402", "network": "base", "price_usdc": 0.50 },
+  "data_sources": ["cmc_rest", "cmc_mcp", "cmc_x402"],
+  "tags": ["signal-validation", "quant-research", "CMC", "BNB-hackathon"]
+}
