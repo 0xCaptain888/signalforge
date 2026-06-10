@@ -1,0 +1,72 @@
+{
+  "verdict": "LEAKAGE_DETECTED",
+  "edge_confidence": 47,
+  "reasons": [
+    "DSR prob=0.001 < 0.20 -> strong signal: no alpha (-25)",
+    "0 factors pass BH-FDR q=0.10 (pooled) -> no alpha in universe (-15)",
+    "WF median Sharpe=0.00 >= 0 -> weakly positive (+3)",
+    "Parameter scan shows plateau -> insensitive to parameter choice, not overfit (+10)",
+    "Look-ahead test PASS -> no look-ahead bias, results trustworthy (+0)",
+    "Strongest regime t-stat=4.56 >= 4.0 -> local regime alpha significant (+15)"
+  ],
+  "verdict_summary": "REJECT this signal. Data leakage detected: naive Sharpe=0.85 vs honest Sharpe=-0.99. The backtest was exploiting future information.",
+  "leakage_check": {
+    "lookahead_test": "PASS",
+    "is_only_calibration": "ENFORCED",
+    "naive_sharpe_if_leaked": 0.85,
+    "honest_sharpe": -0.99,
+    "gap": 1.84,
+    "threshold": 0.8,
+    "direction_flip_detected": true,
+    "lookahead_flag": false,
+    "leaked": true
+  },
+  "statistics": {
+    "dsr_probability": 0.001,
+    "fdr_significant_factors": 0,
+    "walk_forward_median_sharpe": 0.0,
+    "walk_forward_windows": 7,
+    "oos_sharpe_is_only": -0.99,
+    "oos_max_drawdown": -0.06,
+    "parameter_plateau": "plateau",
+    "strongest_regime_bucket": "CHOP_NEUTRAL",
+    "strongest_ic": -0.2954323030508987,
+    "strongest_t_stat": -4.555322426715175
+  },
+  "regime_conditional_finding": {
+    "note": "CMC F&G shows regime-conditional alpha exploitable in CHOP_NEUTRAL regime",
+    "bucket": "CHOP_NEUTRAL",
+    "ic": -0.2954323030508987,
+    "t_stat": -4.555322426715175,
+    "p_value": 9e-06,
+    "interpretation": "Mean-reversion in choppy neutral sentiment is the only statistically significant sub-regime. Not yet robust enough for standalone deployment."
+  },
+  "strategy_spec_ref": "outputs/specs/signalforge-cmc-fg-regime-v1.json",
+  "spec_id": "signalforge-cmc-fg-regime-v1",
+  "cmc_data_provenance": {
+    "fear_greed_source": "CMC proprietary /v3/fear-and-greed/historical (NOT Alternative.me)",
+    "sample_size": 1075,
+    "date_range": "2023-06-29 to 2026-06-07",
+    "access_channels_used": [
+      "rest"
+    ],
+    "historical_channels_documented": [
+      "rest",
+      "mcp",
+      "x402"
+    ],
+    "x402_tx": null
+  },
+  "billing": {
+    "protocol": "x402",
+    "price_usdc": 0.5,
+    "payment_tx": null,
+    "network": "base"
+  },
+  "meta": {
+    "adjudicator_version": "2.1.0",
+    "seed": 42,
+    "timestamp_utc": "2026-06-10T09:13:14.176584+00:00",
+    "reproducible": true
+  }
+}

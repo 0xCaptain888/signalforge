@@ -68,6 +68,73 @@ Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
 
 ---
 
+## 🟢 Latest live run (v2.1 — 2026-06-10)
+
+End-to-end interaction against the real third-party APIs. Full dump:
+[`outputs/sample_live_verdict.json`](outputs/sample_live_verdict.json) ·
+[`outputs/reports/research_report.md`](outputs/reports/research_report.md) ·
+[`outputs/specs/signalforge-cmc-fg-regime-v1.json`](outputs/specs/signalforge-cmc-fg-regime-v1.json)
+
+**API connectivity probe**
+
+| Provider | Endpoint | Result |
+|---|---|---|
+| CoinMarketCap Pro | `GET /v3/fear-and-greed/latest` | `value=14 (Extreme fear)` |
+| DeepSeek | `POST /v1/chat/completions` (deepseek-chat) | OK · 8,723 tokens across 3 calls |
+| Pinata | `POST /v3/files` (public IPFS) | CID `bafkreifqaqjtdwhftb33dirb6w3up26ux5x4p6jddf4iv66nof4vc5exly` |
+| BSC Testnet RPC | `eth_getBalance` | `0xF1a1…0298` → **0.30 tBNB** |
+| Base Mainnet RPC | `eth_getBalance` | `0xF1a1…0298` → **0.00165 ETH** |
+
+**Service end-to-end** (`scripts/09_e2e_smoke_test.py` against `service.app`)
+
+```
+[1/5] GET  /health                            → 200
+[2/5] POST /adjudicate (no X-PAYMENT)         → 402 + x402Version=1 quote
+[3/5] POST /adjudicate (with X-PAYMENT demo)  → 200, verdict=LEAKAGE_DETECTED
+[4/5] GET  /.well-known/skill-card.json       → 200, keywords ✓
+[5/5] src.adjudicator.scoring.verify_v1_score → score=12 PASS
+```
+
+**Live verdict against the real v1 research data** (not the demo fallback)
+
+| Field | Value |
+|---|---|
+| `verdict` | `LEAKAGE_DETECTED` |
+| `edge_confidence` | **47 / 100** |
+| `leakage_check.naive_sharpe_if_leaked` | `0.85` |
+| `leakage_check.honest_sharpe` | `-0.99` |
+| `leakage_check.gap` | `1.84` (threshold 0.80) |
+| `statistics.strongest_regime_bucket` | `CHOP_NEUTRAL` |
+| `statistics.strongest_t_stat` | `-4.56` (p = 9e-06) |
+| `statistics.dsr_probability` | `0.001` |
+| `statistics.fdr_significant_factors` | `0` |
+
+> The confidence is **47**, not the hard-coded demo **12**, because the service is
+> reading real `outputs/research_results.json` from the v1 pipeline rather than
+> falling back to `_demo_results()`.
+
+**LLM pipeline run** (`scripts/05_generate_spec.py` → `scripts/06_write_report.py`)
+
+| Call | Model | Tokens | Artifact |
+|---|---|---|---|
+| Connectivity probe | `deepseek-chat` | 21 | — |
+| Strategy header | `deepseek-chat` | 143 | `outputs/specs/…json` `description` field |
+| Full research report | `deepseek-chat` | **8,559** | `outputs/reports/research_report.md` (226 lines) |
+| Per-factor rationale (`deepseek-reasoner`) | — | 0 | *skipped — `fdr_significant_count = 0`* |
+
+Every prompt + response is persisted under [`outputs/llm_logs/`](outputs/llm_logs/) for auditability.
+`report_writer.verify_numbers` flagged 23 percentage-formatted numbers in the draft for human review —
+this is the hallucination-detector working as designed, not a defect.
+
+**Patch landed in this session**
+
+- `fix(adjudicator)` — `src/adjudicator/core.py` now accepts both `regime_ic` shapes
+  (`dict {bucket: {…}}` from v2 *and* `list [{regime, …}]` from the v1 pipeline),
+  so `/adjudicate` no longer 500s when the merged repo's real research JSON is loaded.
+  Commit `221f6bb`.
+
+---
+
 ## Quickstart (judges: 3 commands, ~2 minutes)
 
 ```bash

@@ -1,0 +1,19 @@
+{
+  "model": "deepseek-chat",
+  "temperature": 0.5,
+  "system": "You write concise quantitative strategy descriptions. Use only the provided facts. Do not invent metrics.",
+  "user": "Describe this regime-aware multi-factor strategy in three sentences. Core edge: CMC PROPRIETARY Fear & Greed (distinct from Alternative.me). FDR-significant factors: []. Out-of-sample Sharpe: -0.9923178381318417.",
+  "response": "This strategy uses a proprietary Fear & Greed metric to identify market regimes, but it does not incorporate any additional factors. Despite its regime-awareness, the strategy produced a severely negative out-of-sample Sharpe ratio of -0.99, indicating poor risk-adjusted performance. The lack of significant factors and extreme Sharpe ratio suggest the approach is ineffective.",
+  "usage": {
+    "completion_tokens": 67,
+    "prompt_tokens": 76,
+    "total_tokens": 143,
+    "completion_tokens_details": null,
+    "prompt_tokens_details": {
+      "audio_tokens": null,
+      "cached_tokens": 0
+    },
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 76
+  }
+}

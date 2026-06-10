@@ -1,0 +1,19 @@
+{
+  "model": "deepseek-chat",
+  "temperature": 0.5,
+  "system": "You are SignalForge QA bot.",
+  "user": "Respond with the single word PING",
+  "response": "PING",
+  "usage": {
+    "completion_tokens": 2,
+    "prompt_tokens": 19,
+    "total_tokens": 21,
+    "completion_tokens_details": null,
+    "prompt_tokens_details": {
+      "audio_tokens": null,
+      "cached_tokens": 0
+    },
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 19
+  }
+}
