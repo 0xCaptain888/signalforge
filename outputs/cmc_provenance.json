@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp_utc": "2026-06-10T11:01:16.308665+00:00",
+    "channel": "x402",
+    "endpoint": "https://mcp.coinmarketcap.com/x402/v3/fear-and-greed/latest",
+    "description": "x402 pay-per-call: /v3/fear-and-greed/latest",
+    "payment_tx": "0xabc123cafe",
+    "credits_used": 0,
+    "response_summary": null
+  },
+  {
+    "timestamp_utc": "2026-06-10T11:01:16.329194+00:00",
+    "channel": "x402",
+    "endpoint": "https://mcp.coinmarketcap.com/x402/test",
+    "description": "x402 pay-per-call: /test",
+    "payment_tx": "0xdeadbeef",
+    "credits_used": 0,
+    "response_summary": null
+  },
+  {
+    "timestamp_utc": "2026-06-10T11:03:02.282593+00:00",
+    "channel": "x402",
+    "endpoint": "https://mcp.coinmarketcap.com/x402/v3/fear-and-greed/latest",
+    "description": "x402 pay-per-call: /v3/fear-and-greed/latest",
+    "payment_tx": "0xabc123cafe",
+    "credits_used": 0,
+    "response_summary": null
+  },
+  {
+    "timestamp_utc": "2026-06-10T11:03:02.303866+00:00",
+    "channel": "x402",
+    "endpoint": "https://mcp.coinmarketcap.com/x402/test",
+    "description": "x402 pay-per-call: /test",
+    "payment_tx": "0xdeadbeef",
+    "credits_used": 0,
+    "response_summary": null
+  }
+]

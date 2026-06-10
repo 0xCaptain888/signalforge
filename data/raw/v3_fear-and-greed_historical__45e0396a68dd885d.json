@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "timestamp": "1780963200",
+      "value": 14,
+      "value_classification": "Extreme fear"
+    }
+  ],
+  "status": {
+    "timestamp": "2026-06-10T11:02:59.985Z",
+    "error_code": "0",
+    "error_message": "",
+    "elapsed": 3,
+    "credit_count": 1
+  }
+}
