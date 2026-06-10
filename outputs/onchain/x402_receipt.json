@@ -1,0 +1,41 @@
+{
+  "x402_proof": {
+    "captured_at": "2026-06-10T09:17Z",
+    "provider": "CoinMarketCap MCP x402",
+    "endpoint": "https://mcp.coinmarketcap.com/x402/mcp",
+    "tool": "get_crypto_quotes_latest",
+    "arguments": { "id": "1" },
+    "x402_version": 2,
+    "x402_flow_id": "47c0451e-3e20-4147-8b4e-6c97f172acab",
+    "status": "settled",
+    "payment": {
+      "scheme": "exact",
+      "network": "eip155:8453",
+      "chain": "Base mainnet",
+      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "asset_symbol": "USDC",
+      "asset_transfer_method": "eip3009",
+      "amount_raw": "10000",
+      "amount_usd": 0.01,
+      "from": "0xf1a116AF29cfff212e496b6356f8F22ABd7c0298",
+      "to": "0x3C5f3a6cE224BB89D72f5EB4232ecC27F67B3eeA"
+    },
+    "onchain": {
+      "network": "base",
+      "tx_hash": "0x6659e5e70b978757dc3a1ed27c33a73eaaf18eeda27a0ffcf3ab44f7da7437e5",
+      "block_number": 47146876,
+      "explorer_url": "https://basescan.org/tx/0x6659e5e70b978757dc3a1ed27c33a73eaaf18eeda27a0ffcf3ab44f7da7437e5",
+      "verified": "transferred 0.01 USDC, balance change 1.331267 -> 1.321267"
+    },
+    "response_summary": {
+      "asset": "Bitcoin (BTC, id=1)",
+      "price_usd": 61018.79,
+      "last_updated_time": "2026-06-10T09:17:00.000Z",
+      "market_cap_usd": 1222760773219.32
+    },
+    "notes": [
+      "08_prove_x402_cmc.py uses the legacy REST path /x402/v3/... which now returns 404. CMC has consolidated x402 delivery onto the MCP transport at /x402/mcp.",
+      "The payment envelope must include the `resource` and `accepted` fields (matching the 402 quote); the local x402_client.py payload format is missing both — patching it is required for the legacy script to work end-to-end."
+    ]
+  }
+}

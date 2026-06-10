@@ -59,12 +59,12 @@ Recommended action: DO NOT TRADE. This self-audit is reproducible in one command
 
 | Item | Network | Link |
 |---|---|---|
-| ERC-8004 registration tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
-| APEX create_job tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
-| APEX fund tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
-| APEX settle (COMPLETED) tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` |
-| IPFS verdict deliverable | IPFS | `https://gateway.pinata.cloud/ipfs/[FILL]` |
-| x402 CMC payment tx | Base | `https://basescan.org/tx/[FILL]` |
+| ERC-8004 registration tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` *(pending `src/bnb/register.py` run)* |
+| APEX create_job tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` *(pending `examples/client_demo.py` run)* |
+| APEX fund tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` *(pending `examples/client_demo.py` run)* |
+| APEX settle (COMPLETED) tx | BSC Testnet | `https://testnet.bscscan.com/tx/[FILL]` *(pending 30-min UMA OOv3 liveness)* |
+| IPFS spec deliverable | IPFS (Pinata) | [bafkreifqaqj…cexly](https://gateway.pinata.cloud/ipfs/bafkreifqaqjtdwhftb33dirb6w3up26ux5x4p6jddf4iv66nof4vc5exly) ✅ |
+| **x402 CMC payment tx** | **Base mainnet** | [**0x6659e5e7…7437e5**](https://basescan.org/tx/0x6659e5e70b978757dc3a1ed27c33a73eaaf18eeda27a0ffcf3ab44f7da7437e5) ✅ (0.01 USDC, block 47146876) |
 
 ---
 
@@ -132,6 +132,45 @@ this is the hallucination-detector working as designed, not a defect.
   (`dict {bucket: {…}}` from v2 *and* `list [{regime, …}]` from the v1 pipeline),
   so `/adjudicate` no longer 500s when the merged repo's real research JSON is loaded.
   Commit `221f6bb`.
+
+**`scripts/07_adjudicate_demo.py` (signal adjudication)**
+
+```
+[!!! LEAKAGE]  v1 Strategy Signal — SignalForge self-audit
+  verdict          : LEAKAGE_DETECTED
+  edge_confidence  : 47/100
+  leaked           : True
+  Sharpe comparison:  naive=+0.85   honest=-0.99   gap=1.84 (threshold=0.80)
+```
+Artifacts: [`outputs/verdicts/sample_leakage.json`](outputs/verdicts/sample_leakage.json) +
+[`outputs/sample_live_verdict.json`](outputs/sample_live_verdict.json).
+Note: the script's `assert edge_confidence == 12` is a hard-coded check for the
+demo fallback; the live pipeline value is **47** (also a correct interpretation —
+real research JSON is loaded instead of `_demo_results()`).
+
+**`scripts/08_prove_x402_cmc.py` (CMC x402 paid call on Base mainnet)**
+
+The legacy REST path the script targets (`/x402/v3/fear-and-greed/latest`) now
+returns 404 from CMC — x402 delivery has consolidated onto the MCP transport
+at `https://mcp.coinmarketcap.com/x402/mcp`. A direct MCP `tools/call` against
+`get_crypto_quotes_latest` with a hand-signed EIP-3009 USDC authorization
+succeeded end-to-end:
+
+| Field | Value |
+|---|---|
+| MCP endpoint | `https://mcp.coinmarketcap.com/x402/mcp` |
+| Tool called | `get_crypto_quotes_latest(id="1")` |
+| x402 version | 2 (`PAYMENT-SIGNATURE` header, base64 envelope) |
+| Asset / amount | USDC on Base mainnet, **0.01 USDC** (`10000` raw) |
+| EIP-3009 from / to | `0xF1a1…0298` → `0x3C5f…3eeA` |
+| **On-chain tx** | [`0x6659…7437e5`](https://basescan.org/tx/0x6659e5e70b978757dc3a1ed27c33a73eaaf18eeda27a0ffcf3ab44f7da7437e5) (block 47146876) |
+| `x402FlowId` | `47c0451e-3e20-4147-8b4e-6c97f172acab` |
+| Server status | `settled` |
+| Data returned | Bitcoin price = **$61,018.79** (real CMC paid data) |
+| Wallet USDC delta | `1.331267` → `1.321267` ✓ |
+
+Full receipt with payment envelope and balance verification:
+[`outputs/onchain/x402_receipt.json`](outputs/onchain/x402_receipt.json).
 
 ---
 
